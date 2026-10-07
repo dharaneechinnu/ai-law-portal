@@ -1,0 +1,40 @@
+import { NavLink, Outlet } from "react-router-dom";
+import { cn } from "@/lib/utils";
+
+const nav = [
+  ["/", "Dashboard"],
+  ["/matters", "Matters"],
+  ["/people", "People"],
+  ["/tasks", "Tasks & Calendar"],
+  ["/legal", "Legal Intelligence"],
+  ["/analytics", "Analytics"],
+  ["/settings", "Settings"],
+  ["/account", "Account"],
+] as const;
+
+export function Layout() {
+  return (
+    <div className="flex min-h-screen">
+      <aside className="w-56 shrink-0 border-r bg-white p-4">
+        <div className="mb-6 text-lg font-semibold">AI Law Portal</div>
+        <nav className="flex flex-col gap-1">
+          {nav.map(([to, label]) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === "/"}
+              className={({ isActive }) =>
+                cn("rounded-md px-3 py-2 text-sm hover:bg-slate-100", isActive && "bg-slate-900 text-white hover:bg-slate-900")
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+      <main className="flex-1 p-8">
+        <Outlet />
+      </main>
+    </div>
+  );
+}
