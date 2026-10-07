@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health
+from app.api import ai_settings, auth, clients, documents, health, matters
 from app.core.config import settings
 
 app = FastAPI(title="AI Law Firm Portal")
@@ -13,6 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Domain routers are added per sprint: auth, users, clients, matters, tasks, calendar,
-# documents, legal, ai, agents, settings, analytics, notifications, audit.
-app.include_router(health.router, prefix="/api")
+# Remaining domain routers are added per sprint: users, tasks, calendar, legal, agents,
+# analytics, notifications, audit.
+for r in (health.router, auth.router, clients.router, matters.router, documents.router, ai_settings.router):
+    app.include_router(r, prefix="/api")
