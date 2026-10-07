@@ -15,23 +15,23 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 1 — Auth + Matter + Document + RAG
 
-- [ ] **Auth & sessions** — Email/password login with JWT; `/api/auth/login` and `/me`.
+- [~] **Auth & sessions** — Email/password login with JWT; `/api/auth/login` and `/me`.
       Passwords are hashed server-side.
 - [ ] **Account profile** — Name, role, designation, practice area, time zone, working hours, notification prefs, briefing time, AI prefs.
       Editable by the user; role changes are admin-only.
-- [ ] **RBAC** — Roles: Admin, Partner, Lawyer, Associate, Paralegal; permission checks as FastAPI dependencies.
+- [~] **RBAC** — Roles: Admin, Partner, Lawyer, Associate, Paralegal; permission checks as FastAPI dependencies.
       Enforced on the server for every router.
-- [ ] **Clients** — Create/list/edit clients with contact details.
+- [~] **Clients** — Create/list/edit clients with contact details.
       Linked to matters.
-- [ ] **Matters** — Full matter record (case no., court, jurisdiction, practice area, lawyer, status, priority, dates, legal issues).
+- [~] **Matters** — Full matter record (case no., court, jurisdiction, practice area, lawyer, status, priority, dates, legal issues).
       Includes matter members and the 10-tab workspace UI.
-- [ ] **Case timeline** — Chronological, DB-backed event feed per matter (created, doc uploaded, task done, judgment detected, AI approved…).
+- [~] **Case timeline** — Chronological, DB-backed event feed per matter (created, doc uploaded, task done, judgment detected, AI approved…).
       Written by services, never by the LLM.
-- [ ] **Document upload & extraction** — Upload PDF/DOCX/TXT, store the file locally, keep metadata in Postgres, extract text per page.
+- [~] **Document upload & extraction** — Upload PDF/DOCX/TXT, store the file locally, keep metadata in Postgres, extract text per page.
       Processing runs as a FastAPI background task.
-- [ ] **Chunking + embeddings + pgvector** — Clean and chunk text, embed through the configured `EmbeddingProvider`, store vectors with doc/page/matter metadata.
+- [~] **Chunking + embeddings + pgvector** — Clean and chunk text, embed through the configured `EmbeddingProvider`, store vectors with doc/page/matter metadata.
       Postgres full-text index supports hybrid search.
-- [ ] **Matter Q&A (RAG)** — Retrieve top chunks, send only those to the LLM, return an answer with document/page citations.
+- [~] **Matter Q&A (RAG)** — Retrieve top chunks, send only those to the LLM, return an answer with document/page citations.
       Refuses to guess when no source supports an answer.
 
 ## Sprint 2 — eCourts + Legal Intelligence
@@ -85,7 +85,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 5 — Analytics + Settings + Providers + Audit
 
-- [ ] **Settings: AI providers** — Admin picks provider (local OpenAI-compatible, OpenAI, Anthropic, Google, Azure, custom), base URL, model, API key.
+- [~] **Settings: AI providers** (basic single-provider version delivered in Sprint 1) — Admin picks provider (local OpenAI-compatible, OpenAI, Anthropic, Google, Azure, custom), base URL, model, API key.
       Keys are encrypted at rest and never returned to the browser.
 - [ ] **Model registry & routing** — Map tasks (summary, research, email, classification, embeddings, rerank) to models.
       Changing a route needs no code change.
@@ -103,3 +103,6 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [ ] eCourts API: base URL, auth method, endpoints, sample response (needed to build the adapter — nothing is invented).
 - [ ] Confirm pgvector extension is installed in your Postgres (`CREATE EXTENSION vector;`).
 - [ ] Choose first LLM + embedding model once the Settings page exists (embedding dimension must be fixed in the schema; default 768).
+
+> `[~]` in Sprint 1 = code written and compiles; end-to-end run against Postgres + an LLM still to be verified.
+> Account profile UI and matter tabs beyond Overview/Timeline/Documents/Ask AI are not built yet.
