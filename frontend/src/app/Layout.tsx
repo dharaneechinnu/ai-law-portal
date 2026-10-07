@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/features/auth/AuthContext";
 
 const nav = [
   ["/", "Dashboard"],
@@ -13,6 +14,7 @@ const nav = [
 ] as const;
 
 export function Layout() {
+  const { user, logout } = useAuth();
   return (
     <div className="flex min-h-screen">
       <aside className="w-56 shrink-0 border-r bg-white p-4">
@@ -31,6 +33,10 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
+        <div className="mt-8 border-t pt-4 text-xs text-slate-500">
+          <div>{user?.name} ({user?.role_name})</div>
+          <button className="mt-1 underline" onClick={logout}>Sign out</button>
+        </div>
       </aside>
       <main className="flex-1 p-8">
         <Outlet />
