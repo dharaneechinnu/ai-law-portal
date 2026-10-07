@@ -6,3 +6,4 @@ node_modules/
 dist/
 backend/storage/*
 !backend/storage/.gitkeep
+*.tsbuildinfo
