@@ -18,6 +18,7 @@ class Task(IdMixin, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="open")  # open/done/archived
     kind: Mapped[str] = mapped_column(String(30), default="task")  # task/follow_up/deadline
     created_by_agent: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
     __table_args__ = (Index("ix_tasks_assignee_due", "assignee_id", "status", "due_at"),)
 
 
