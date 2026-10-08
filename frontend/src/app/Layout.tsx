@@ -6,6 +6,7 @@ import { Logo } from "@/components/brand/Logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/features/auth/AuthContext";
 import { initials } from "@/features/admin/roles";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
 
 const nav = [
   ["/", "Dashboard", LayoutDashboard],
@@ -52,7 +53,8 @@ export function Layout() {
             </>
           )}
         </nav>
-        <div className="mt-auto flex items-center gap-3 rounded-xl bg-white/5 p-3">
+        <div className="mt-auto mb-2"><NotificationBell /></div>
+        <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brass-300 to-brass-600 text-xs font-semibold text-ink-950">
             {initials(user?.name ?? "")}
           </span>

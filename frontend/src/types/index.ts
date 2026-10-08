@@ -298,3 +298,13 @@ export interface Briefing {
   created_at: string;
   facts: { hearings: unknown[]; meetings: unknown[]; due_today: unknown[]; overdue_count: number; alert_count: number };
 }
+
+export interface AppNotification {
+  id: string;
+  kind: string;
+  title: string;
+  body?: string | null;
+  link?: string | null;
+  read_at?: string | null;
+  created_at: string;
+}
