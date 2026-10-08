@@ -229,3 +229,40 @@ export interface Task {
   blocked: boolean;
   created_at: string;
 }
+
+export interface CalItem {
+  kind: "event" | "hearing";
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  location?: string | null;
+  matter_id?: string | null;
+  matter_title?: string | null;
+  status: string;
+  owner_id?: string | null;
+  attendee_ids?: string[];
+  outcome?: string | null;
+}
+
+export interface CalEvent {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  location?: string | null;
+  matter_id?: string | null;
+  owner_id: string;
+  attendee_ids: string[];
+}
+
+export interface Hearing {
+  id: string;
+  matter_id: string;
+  matter_title?: string | null;
+  scheduled_at: string;
+  court_room?: string | null;
+  purpose?: string | null;
+  status: string;
+  outcome?: string | null;
+}
