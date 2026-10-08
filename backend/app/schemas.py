@@ -793,3 +793,14 @@ class AuditOut(BaseModel):
     approved_by_name: str | None = None
     executed: bool | None = None
     result: dict = {}
+
+
+class ModelRouteOut(BaseModel):
+    task: str
+    label: str
+    model: str | None = None  # None = uses the default chat model
+    default_model: str
+
+
+class ModelRouteIn(BaseModel):
+    model: str | None = None
