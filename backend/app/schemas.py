@@ -580,3 +580,40 @@ class HearingOut(ORM):
     purpose: str | None = None
     status: str
     outcome: str | None = None
+
+
+# ---- People ----
+class PersonOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    email: str
+    role_name: str
+    designation: str | None = None
+    practice_areas: list = []
+    status: str  # free / busy / off
+    busy_until: datetime | None = None
+    open_tasks: int
+    overdue_tasks: int
+    active_matters: int
+
+
+class BusyOut(BaseModel):
+    start: datetime
+    end: datetime
+    title: str
+    kind: str
+
+
+class PersonDetailOut(PersonOut):
+    phone: str | None = None
+    office_location: str | None = None
+    timezone: str
+    working_hours: dict
+    busy: list[BusyOut]
+    matters: list[DashMatter]
+
+
+class AvailabilityOut(BaseModel):
+    free: bool
+    within_hours: bool
+    busy: list[BusyOut]
