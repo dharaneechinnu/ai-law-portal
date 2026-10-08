@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
-    admin, agents, ai_settings, auth, briefing, calendar, clients, dashboard, documents, health, legal, matters,
+    admin, agents, ai_settings, assistant, auth, briefing, calendar, clients, dashboard, documents, health, legal, matters,
     notifications, people, tasks,
 )
 from app.core import scheduler
@@ -41,5 +41,6 @@ app.add_middleware(
 for r in (health.router, auth.router, clients.router, matters.router, documents.router, ai_settings.router,
           admin.router, legal.settings_router, legal.router, dashboard.router, tasks.router,
           calendar.router, calendar.hearings_router, people.router, briefing.router,
-          notifications.router, agents.router, agents.approvals_router):
+          notifications.router, agents.router, agents.approvals_router,
+          assistant.router):
     app.include_router(r, prefix="/api")

@@ -744,3 +744,33 @@ class OverrideIn(BaseModel):
         if v not in {"ALLOWED", "APPROVAL_REQUIRED"}:
             raise ValueError("An override can allow or ask first")
         return v
+
+
+# ---- Assistant (LangGraph agents) ----
+class ChatIn(BaseModel):
+    agent_key: str = "task"
+    message: str
+    execution_id: uuid.UUID | None = None
+
+    @field_validator("message")
+    @classmethod
+    def message_required(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError("Type a message")
+        return v
+
+
+class StepOut(BaseModel):
+    action: str
+    label: str
+    status: str
+    reason: str = ""
+    approval_id: uuid.UUID | None = None
+
+
+class ChatOut(BaseModel):
+    execution_id: uuid.UUID
+    agent_key: str
+    reply: str
+    steps: list[StepOut]
