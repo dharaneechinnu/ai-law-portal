@@ -82,8 +82,11 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Built: `briefings` table (one per user per local day), `services/briefing.py` (facts from the dashboard service + calendar;
       the configured LLM only words a 2–3 sentence summary, plain factual summary otherwise), APScheduler job every minute in
       `core/scheduler.py` (`SCHEDULER_ENABLED`), `/api/briefing/today` GET/POST, dashboard card. LangGraph agent version is Sprint 4.
-- [ ] **Notifications** — Briefing, meeting/hearing/deadline reminders, overdue, new legal development, approval requests.
+- [x] **Notifications** — Briefing, meeting/hearing/deadline reminders, overdue, new legal development, approval requests.
       De-duplicated and actionable to avoid spam.
+      Built: `services/notifications.py` (`notify` with per-user dedupe key and Account preferences), reminders every 5 min
+      (hearings 24 h ahead, meetings 15 min ahead, tasks due in 24 h, newly overdue), hooks on task assignment, meeting invites,
+      legal alerts and briefing ready; `/api/notifications`; sidebar bell with badge and panel. Approval requests wait for Sprint 4.
 
 ## Sprint 4 — LangGraph + Agent Tools + Policy + Approval
 
