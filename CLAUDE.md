@@ -92,7 +92,8 @@ frontend/src/
   `/legal/matters/{id}/matches`, match review/compare), health.
 - Built frontend: animated auth screens, admin panel, account page, clients, matters list/create, 10-tab matter workspace
   (Tasks/Hearings/Communications/AI Activity are placeholders), Legal Intelligence page + matter tab, AI and eCourts settings.
-  Dashboard/People/Tasks/Analytics pages are placeholders.
+  Dashboard (drag-and-drop cards, layout saved per user via `/dashboard/layout`). People/Tasks/Analytics pages are placeholders.
+  UI direction from the user: UI first, smooth short animations, plain clear wording; responsive down to phone width.
 - RBAC: admin-only on AI settings and user admin. Per-matter access control in `services/access.py` (every matter-scoped
   route uses `get_matter_or_404(db, id, user)`). Not yet: email delivery of invites,
   automated tests, Sprints 2–5.

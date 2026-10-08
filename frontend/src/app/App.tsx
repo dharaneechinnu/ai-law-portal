@@ -10,6 +10,7 @@ import { RegisterPage } from "@/features/auth/RegisterPage";
 import { SetupPage } from "@/features/auth/SetupPage";
 import { MatterDetail } from "@/features/matters/MatterDetail";
 import { MattersPage } from "@/features/matters/MattersPage";
+import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { LegalPage } from "@/features/legal-intelligence/LegalPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { Placeholder } from "@/routes/Placeholder";
@@ -17,7 +18,6 @@ import { Placeholder } from "@/routes/Placeholder";
 const queryClient = new QueryClient();
 
 const pages: [string, string, string][] = [
-  ["/", "Dashboard", "Action center: today's work and AI alerts (Sprint 3)."],
   ["/people", "People", "Lawyers, workload and availability (Sprint 3)."],
   ["/tasks", "Tasks & Calendar", "Tasks, hearings, meetings (Sprint 3)."],
   ["/analytics", "Analytics", "Firm, legal and AI analytics (Sprint 5)."],
@@ -54,6 +54,7 @@ export default function App() {
               <Route path="/matters/:id" element={<MatterDetail />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/legal" element={<LegalPage />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/admin/users" element={<AdminOnly><AdminUsersPage /></AdminOnly>} />
               {pages.map(([path, title, hint]) => (
                 <Route key={path} path={path} element={<Placeholder title={title} hint={hint} />} />

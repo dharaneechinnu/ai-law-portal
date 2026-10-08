@@ -191,3 +191,51 @@ export interface LegalMatch {
   judgment: Judgment;
   detected_at: string;
 }
+
+export type DashCardId = "stats" | "hearings" | "alerts" | "my_matters" | "documents";
+
+export interface DashboardLayout {
+  order: DashCardId[];
+  hidden: DashCardId[];
+}
+
+export interface DashMatter {
+  id: string;
+  matter_number: string;
+  title: string;
+  status: string;
+  priority: string;
+  court?: string | null;
+  next_hearing?: string | null;
+  restricted: boolean;
+}
+
+export interface DashDocument {
+  id: string;
+  matter_id: string;
+  matter_title: string;
+  filename: string;
+  status: string;
+  error?: string | null;
+  created_at: string;
+}
+
+export interface DashAlert {
+  id: string;
+  matter_id: string;
+  matter_title: string;
+  title: string;
+  kind: string;
+  court_name?: string | null;
+  relevance: number;
+  detected_at: string;
+}
+
+export interface Dashboard {
+  layout: DashboardLayout;
+  stats: { my_matters: number; hearings: number; alerts: number; documents: number };
+  my_matters: DashMatter[];
+  hearings: DashMatter[];
+  alerts: DashAlert[];
+  documents: DashDocument[];
+}

@@ -337,3 +337,51 @@ class MatchStatusIn(BaseModel):
         if v not in {"new", "reviewed", "dismissed"}:
             raise ValueError("Status must be new, reviewed or dismissed")
         return v
+
+
+# ---------- Dashboard ----------
+
+class DashboardLayout(BaseModel):
+    order: list[str]
+    hidden: list[str] = []
+
+
+class DashMatter(BaseModel):
+    id: uuid.UUID
+    matter_number: str
+    title: str
+    status: str
+    priority: str
+    court: str | None = None
+    next_hearing: datetime | None = None
+    restricted: bool = False
+
+
+class DashDocument(BaseModel):
+    id: uuid.UUID
+    matter_id: uuid.UUID
+    matter_title: str
+    filename: str
+    status: str
+    error: str | None = None
+    created_at: datetime
+
+
+class DashAlert(BaseModel):
+    id: uuid.UUID
+    matter_id: uuid.UUID
+    matter_title: str
+    title: str
+    kind: str
+    court_name: str | None = None
+    relevance: float
+    detected_at: datetime
+
+
+class DashboardOut(BaseModel):
+    layout: DashboardLayout
+    stats: dict[str, int]
+    my_matters: list[DashMatter]
+    hearings: list[DashMatter]
+    alerts: list[DashAlert]
+    documents: list[DashDocument]
