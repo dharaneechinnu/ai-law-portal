@@ -64,8 +64,10 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Tasks** — CRUD with assignee, due date, priority, matter link, dependencies, and archive instead of hard delete.
       Task events feed the matter timeline. `/api/tasks` (list/create/patch; no delete), `services/tasks.py` (access rule, dependency
       loop check, "finish dependencies first"); `/tasks` page (Mine/Everyone) and the matter Tasks tab. Not yet run against a live DB.
-- [ ] **Calendar & hearings** — Calendar events and hearings per matter/user behind `CalendarProvider`.
-      Ships with a local mock provider; Google/Outlook slot in later.
+- [x] **Calendar & hearings** — Calendar events and hearings per matter/user behind `CalendarProvider`.
+      Ships with a local mock provider; Google/Outlook slot in later. `LocalCalendarProvider`, `/api/calendar` (range query,
+      create/edit/cancel events; organiser-only edits), `/api/hearings` (list/create/update; keeps `matters.next_hearing` current,
+      logs to timeline). `/calendar` week view and the matter Hearings tab. Month/day views not built. Not yet run against a live DB.
 - [ ] **People & availability** — Lawyer list/create/edit/view with practice areas, workload, and free/busy from calendar plus working hours.
       Exposed as a service so agents can ask "is X free?".
 - [~] **Dashboard action center** — "What do I need to do today": due/overdue tasks, hearings, meetings, follow-ups, docs needing action, AI alerts.
