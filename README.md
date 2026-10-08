@@ -11,9 +11,10 @@ See [TRACKER.md](TRACKER.md) for the full feature list and status, and
 
 [TRACKER.md](TRACKER.md) remains the feature-level view; the spreadsheet is the detailed task list.
 
-### Google Sheets trackers
-- [Feature Tracker (FE + BE + AI)](https://docs.google.com/spreadsheets/d/1qH6SFYa37LD5dRy3VkaqZYHzw0c0AJ8RDApE7ve7oms/edit): one row per feature (39), showing Frontend, Backend and AI work with a status for each, plus an overall status.
-- [Task Tracker](https://docs.google.com/spreadsheets/d/1VahdEvdO0KcKf6t4uX9FrloDXqiNDcRRYhCYxDMmJZc/edit): the 92 individual FE / BE / AI tasks with priority and dependencies.
+### Google Sheets tracker
+- [Project Tracker spreadsheet](https://docs.google.com/spreadsheets/d/12W3UFdPmQwounF4CWLC8Exx52Ok5wfOF8g0BiOdKelQ/edit?usp=sharing): the main shared tracker.
+  To refresh it from the repo, use File > Import > Upload `docs/Project-Tracker.xlsx` > Replace spreadsheet.
+- Reference copies: [Feature Tracker (FE + BE + AI)](https://docs.google.com/spreadsheets/d/1qH6SFYa37LD5dRy3VkaqZYHzw0c0AJ8RDApE7ve7oms/edit) (39 features) and [Task Tracker](https://docs.google.com/spreadsheets/d/1VahdEvdO0KcKf6t4uX9FrloDXqiNDcRRYhCYxDMmJZc/edit) (92 tasks).
 
 ## What it does
 A law-firm portal that combines matter management (clients, matters, documents, tasks, hearings)
