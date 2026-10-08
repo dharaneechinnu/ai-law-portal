@@ -81,6 +81,18 @@ with `VITE_API_URL=http://localhost:8000`.
 4. Create a client and a matter under **Matters**, upload a PDF/DOCX/TXT in the Documents tab,
    then ask questions in the **Ask AI** tab.
 
+## Run the tests
+```powershell
+cd backend
+.venv\Scriptsctivate
+pip install -r requirements-dev.txt   # first time only
+pytest
+```
+The suite creates a separate `ai_law_test` database on the same Postgres server (dropped and rebuilt from the
+migrations on every run), so your working data is never touched. It covers tasks, hearings, calendar, people,
+reminders, the briefing, the AI policy engine, approvals, kill switch, overrides, agents (with a scripted model),
+the append-only audit log, firm settings and analytics.
+
 ## Configuration
 LLM, embedding and eCourts credentials are entered in the Settings page and stored
 encrypted in the database. They are never sent to the browser. Only DB, secret key,
