@@ -61,8 +61,9 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 3 — Tasks + Calendar + Notifications
 
-- [ ] **Tasks** — CRUD with assignee, due date, priority, matter link, dependencies, and archive instead of hard delete.
-      Task events feed the matter timeline.
+- [x] **Tasks** — CRUD with assignee, due date, priority, matter link, dependencies, and archive instead of hard delete.
+      Task events feed the matter timeline. `/api/tasks` (list/create/patch; no delete), `services/tasks.py` (access rule, dependency
+      loop check, "finish dependencies first"); `/tasks` page (Mine/Everyone) and the matter Tasks tab. Not yet run against a live DB.
 - [ ] **Calendar & hearings** — Calendar events and hearings per matter/user behind `CalendarProvider`.
       Ships with a local mock provider; Google/Outlook slot in later.
 - [ ] **People & availability** — Lawyer list/create/edit/view with practice areas, workload, and free/busy from calendar plus working hours.
