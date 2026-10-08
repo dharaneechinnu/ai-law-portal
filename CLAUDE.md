@@ -88,8 +88,10 @@ frontend/src/
   audit (`services/agent_runtime.py`, `services/audit.py`), LangGraph agents (`services/agents.py`), Approvals page,
   Settings > AI agents (kill switch, modes, rules, overrides), floating Assistant. Default: every agent "Ask first";
   DELETE_TASK off; read-only tools allowed. Agents tested with a scripted fake model only.
-- Not yet: audit search screen, analytics, model routing, integration/notification/retention settings, email provider,
-  frontend tests. Backend tests: `pytest` in backend/ (17 tests, own `ai_law_test` DB).
+- Sprint 5 built: audit log screen (append-only by DB trigger), analytics, model routing per job, firm notification settings,
+  SMTP email (Settings > Email, emailed invites), calendar month view.
+- Not yet: Google/Outlook calendar, storage settings, data retention, API keys, scheduled eCourts sync, emailed reminders,
+  frontend tests. Backend tests: `pytest` in backend/ (22 tests, own `ai_law_test` DB).
 - Blocked on user: choice of a tool-calling LLM + embedding model (nothing configured in Settings > AI providers yet);
   eCourts base URL, endpoint paths and a sample response.
 

@@ -124,8 +124,11 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Changing a route needs no code change.
       Built: `ai_registry.get_llm(db, task)` with fallback to the default chat model; jobs `qa`, `summary`, `comparison`, `agents`;
       `/api/settings/ai/routes`; "Model per job" in Settings > AI providers. Same provider for all jobs; embeddings stay fixed.
-- [ ] **Settings: legal data / calendar / email / storage** — Configure integrations and "Test Connection" from the UI.
+- [~] **Settings: legal data / calendar / email / storage** — Configure integrations and "Test Connection" from the UI.
       Secrets stay backend-only.
+      Built: legal data (Sprint 2) and email: `SmtpEmailProvider` + `services/email.py`, Settings > Email with Send test email,
+      invites emailed from Team & access, agent SEND_EMAIL sends after approval, sends audited. Not built: Google/Outlook calendar,
+      storage, email copies of reminders and briefings.
 - [x] **Settings: agents & permissions UI** — Per-action policy editor, overrides, kill switch, agent settings.
       Settings > AI agents (admin): kill switch, agent on/off and mode, per-action rule, temporary overrides.
 - [~] **Settings: notifications, retention, API keys** — Daily briefing, reminders, legal alert thresholds, data retention, API keys.
