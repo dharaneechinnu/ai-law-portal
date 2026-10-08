@@ -617,3 +617,13 @@ class AvailabilityOut(BaseModel):
     free: bool
     within_hours: bool
     busy: list[BusyOut]
+
+
+# ---- Daily briefing ----
+class BriefingOut(ORM):
+    id: uuid.UUID
+    for_date: date
+    summary: str
+    facts: dict
+    source: str
+    created_at: datetime
