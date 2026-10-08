@@ -30,6 +30,7 @@ class UserOut(ORM):
     notification_prefs: dict = {}
     daily_briefing_time: str | None = None
     ai_prefs: dict = {}
+    dashboard_layout: dict = {}
     firm_name: str | None = None
 
 
@@ -49,6 +50,23 @@ class ProfileUpdate(BaseModel):
     notification_prefs: dict | None = None
     daily_briefing_time: str | None = None
     ai_prefs: dict | None = None
+    dashboard_layout: dict | None = None
+
+    @field_validator("dashboard_layout")
+    @classmethod
+    def valid_layout(cls, v):
+        if v is None:
+            return v
+        widgets = v.get("widgets")
+        if not isinstance(widgets, list) or len(widgets) > 20:
+            raise ValueError("Invalid dashboard layout")
+        clean = []
+        for w in widgets:
+            if not isinstance(w, dict) or not isinstance(w.get("id"), str) or len(w["id"]) > 40:
+                raise ValueError("Invalid dashboard layout")
+            clean.append({"id": w["id"], "size": "full" if w.get("size") == "full" else "half",
+                          "hidden": bool(w.get("hidden"))})
+        return {"widgets": clean}
 
     @field_validator("timezone")
     @classmethod
@@ -337,3 +355,45 @@ class MatchStatusIn(BaseModel):
         if v not in {"new", "reviewed", "dismissed"}:
             raise ValueError("Status must be new, reviewed or dismissed")
         return v
+
+
+# ---- Dashboard ----
+class DashStats(BaseModel):
+    open_matters: int
+    overdue_tasks: int
+    hearings_week: int
+    new_alerts: int
+
+
+class DashItem(BaseModel):
+    kind: str  # hearing / task
+    id: uuid.UUID
+    title: str
+    at: datetime | None = None
+    matter_id: uuid.UUID | None = None
+    matter_title: str | None = None
+    priority: str | None = None
+
+
+class DashAlert(BaseModel):
+    id: uuid.UUID
+    matter_id: uuid.UUID
+    matter_title: str
+    title: str | None = None
+    relevance: float
+
+
+class DashMatter(BaseModel):
+    id: uuid.UUID
+    title: str
+    matter_number: str
+    priority: str
+    next_hearing: datetime | None = None
+
+
+class DashboardOut(BaseModel):
+    stats: DashStats
+    today: list[DashItem]
+    overdue: list[DashItem]
+    alerts: list[DashAlert]
+    matters: list[DashMatter]
