@@ -9,6 +9,7 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { RegisterPage } from "@/features/auth/RegisterPage";
 import { SetupPage } from "@/features/auth/SetupPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { TasksPage } from "@/features/tasks/TasksPage";
 import { MatterDetail } from "@/features/matters/MatterDetail";
 import { MattersPage } from "@/features/matters/MattersPage";
 import { LegalPage } from "@/features/legal-intelligence/LegalPage";
@@ -19,7 +20,6 @@ const queryClient = new QueryClient();
 
 const pages: [string, string, string][] = [
   ["/people", "People", "Lawyers, workload and availability (Sprint 3)."],
-  ["/tasks", "Tasks & Calendar", "Tasks, hearings, meetings (Sprint 3)."],
   ["/analytics", "Analytics", "Firm, legal and AI analytics (Sprint 5)."],
 ];
 
@@ -49,6 +49,7 @@ export default function App() {
             <Route path="/setup" element={<SetupPage />} />
             <Route element={<Protected />}>
               <Route path="/" element={<DashboardPage />} />
+              <Route path="/tasks" element={<TasksPage />} />
               <Route path="/matters" element={<MattersPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/account" element={<AccountPage />} />
