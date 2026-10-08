@@ -12,6 +12,7 @@ import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { CalendarPage } from "@/features/calendar/CalendarPage";
 import { PeoplePage } from "@/features/people/PeoplePage";
 import { ApprovalsPage } from "@/features/ai/ApprovalsPage";
+import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { TasksPage } from "@/features/tasks/TasksPage";
 import { MatterDetail } from "@/features/matters/MatterDetail";
 import { MattersPage } from "@/features/matters/MattersPage";
@@ -20,10 +21,6 @@ import { SettingsPage } from "@/features/settings/SettingsPage";
 import { Placeholder } from "@/routes/Placeholder";
 
 const queryClient = new QueryClient();
-
-const pages: [string, string, string][] = [
-  ["/analytics", "Analytics", "Firm, legal and AI analytics (Sprint 5)."],
-];
 
 /** UX guard only; the server enforces RBAC on every admin endpoint. */
 function AdminOnly({ children }: { children: React.ReactNode }) {
@@ -55,6 +52,7 @@ export default function App() {
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/people" element={<PeoplePage />} />
               <Route path="/approvals" element={<ApprovalsPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/matters" element={<MattersPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/account" element={<AccountPage />} />
@@ -62,9 +60,6 @@ export default function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/legal" element={<LegalPage />} />
               <Route path="/admin/users" element={<AdminOnly><AdminUsersPage /></AdminOnly>} />
-              {pages.map(([path, title, hint]) => (
-                <Route key={path} path={path} element={<Placeholder title={title} hint={hint} />} />
-              ))}
             </Route>
           </Routes>
         </BrowserRouter>
