@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Route } from "lucide-react";
 import { api, errorMessage } from "@/services/api";
 import { cn } from "@/lib/utils";
-import type { ModelRoute } from "@/types";
+import type { AIConfig, ModelRoute } from "@/types";
 
 function RouteRow({ r, i }: { r: ModelRoute; i: number }) {
   const qc = useQueryClient();
@@ -33,13 +33,18 @@ function RouteRow({ r, i }: { r: ModelRoute; i: number }) {
 
 /** Send each AI job to its own model on the configured provider. Empty = the default chat model. */
 export function ModelRoutes() {
-  const { data, isError, error } = useQuery({ queryKey: ["ai-routes"], queryFn: () => api<ModelRoute[]>("/settings/ai/routes"), retry: false });
+  const { data: cfg } = useQuery({ queryKey: ["ai-config"], queryFn: () => api<AIConfig>("/settings/ai") });
+  const { data, isError, error } = useQuery({
+    queryKey: ["ai-routes"], queryFn: () => api<ModelRoute[]>("/settings/ai/routes"), retry: false, enabled: !!cfg?.configured,
+  });
   return (
     <section className="mt-10">
       <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold text-ink-700"><Route className="size-4" /> Model per job</h3>
       <p className="mb-3 text-xs text-ink-400">Leave a job empty to use the default chat model. Agents need a model that supports tool calling.</p>
-      {isError ? (
-        <p className="rounded-xl bg-ink-50 px-4 py-3 text-sm text-ink-500">{errorMessage(error).includes("not configured") ? "Save a provider above first." : errorMessage(error)}</p>
+      {cfg && !cfg.configured ? (
+        <p className="rounded-xl bg-ink-50 px-4 py-3 text-sm text-ink-500">Save a provider above first.</p>
+      ) : isError ? (
+        <p className="rounded-xl bg-ink-50 px-4 py-3 text-sm text-red-600">{errorMessage(error)}</p>
       ) : (
         <div className="divide-y divide-ink-50 rounded-2xl border border-ink-100 bg-white">
           {data?.map((r, i) => <RouteRow key={r.task} r={r} i={i} />)}
