@@ -67,8 +67,10 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Ships with a local mock provider; Google/Outlook slot in later.
 - [ ] **People & availability** — Lawyer list/create/edit/view with practice areas, workload, and free/busy from calendar plus working hours.
       Exposed as a service so agents can ask "is X free?".
-- [ ] **Dashboard action center** — "What do I need to do today": due/overdue tasks, hearings, meetings, follow-ups, docs needing action, AI alerts.
-      No decorative charts.
+- [~] **Dashboard action center** — "What do I need to do today": due/overdue tasks, hearings, meetings, follow-ups, docs needing action, AI alerts.
+      No decorative charts. Built: `/api/dashboard` (counts, today, overdue, legal alerts, active matters; filtered by case access) and a
+      drag-and-drop dashboard (reorder, resize, hide; layout saved per user in `users.dashboard_layout`). Pending: meetings, follow-ups,
+      documents needing action, approvals and briefing cards; task and hearing data appear once those features exist.
 - [ ] **Daily briefing** — Per-user configurable time; a scheduler triggers the Daily Briefing agent and stores the result.
       Time is read from the user's profile, never hard-coded.
 - [ ] **Notifications** — Briefing, meeting/hearing/deadline reminders, overdue, new legal development, approval requests.
