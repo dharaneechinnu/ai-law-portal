@@ -120,8 +120,10 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 - [~] **Settings: AI providers** (basic single-provider version delivered in Sprint 1) — Admin picks provider (local OpenAI-compatible, OpenAI, Anthropic, Google, Azure, custom), base URL, model, API key.
       Keys are encrypted at rest and never returned to the browser.
-- [ ] **Model registry & routing** — Map tasks (summary, research, email, classification, embeddings, rerank) to models.
+- [x] **Model registry & routing** — Map tasks (summary, research, email, classification, embeddings, rerank) to models.
       Changing a route needs no code change.
+      Built: `ai_registry.get_llm(db, task)` with fallback to the default chat model; jobs `qa`, `summary`, `comparison`, `agents`;
+      `/api/settings/ai/routes`; "Model per job" in Settings > AI providers. Same provider for all jobs; embeddings stay fixed.
 - [ ] **Settings: legal data / calendar / email / storage** — Configure integrations and "Test Connection" from the UI.
       Secrets stay backend-only.
 - [x] **Settings: agents & permissions UI** — Per-action policy editor, overrides, kill switch, agent settings.
