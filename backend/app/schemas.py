@@ -270,6 +270,7 @@ class AdminUserUpdate(BaseModel):
 class AdminUserCreated(BaseModel):
     user: AdminUserOut
     invite_token: str | None = None  # shown once; the frontend turns it into /register?token=...
+    emailed: bool = False  # True when the link was also sent by email
 
 
 # ---------- Legal data / Legal Intelligence (Sprint 2) ----------
@@ -813,3 +814,37 @@ class FirmSettings(BaseModel):
     meeting_reminder_minutes: int | None = None
     task_due_reminder_hours: int | None = None
     approval_expiry_days: int | None = None
+
+
+# ---- Email ----
+class EmailConfigIn(BaseModel):
+    host: str
+    port: int = 587
+    security: str = "starttls"
+    username: str | None = None
+    password: str | None = None  # write-only; omit to keep the stored one
+    sender: EmailStr
+
+    @field_validator("security")
+    @classmethod
+    def valid_security(cls, v):
+        if v not in {"starttls", "ssl", "none"}:
+            raise ValueError("Choose STARTTLS, SSL or none")
+        return v
+
+    @field_validator("port")
+    @classmethod
+    def valid_port(cls, v):
+        if not 1 <= v <= 65535:
+            raise ValueError("Port must be 1 to 65535")
+        return v
+
+
+class EmailConfigOut(BaseModel):
+    configured: bool
+    host: str | None = None
+    port: int | None = None
+    security: str = "starttls"
+    username: str | None = None
+    sender: str | None = None
+    has_password: bool = False

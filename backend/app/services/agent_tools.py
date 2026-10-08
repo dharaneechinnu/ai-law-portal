@@ -145,7 +145,12 @@ async def _create_event(db, user, a: EventIn) -> dict:
 
 
 async def _send_email(db, user, a: SendEmailArgs) -> dict:
-    raise HTTPException(409, "Email is not set up yet. An admin must add an email provider in Settings.")
+    from app.services import email
+    try:
+        message_id = await email.send(db, a.to, a.subject, a.body, actor=user, reason="agent")
+    except email.NotConfigured as e:
+        raise HTTPException(409, str(e))
+    return {"sent_to": a.to, "message_id": message_id}
 
 
 TOOLS: dict[str, Tool] = {t.action: t for t in [

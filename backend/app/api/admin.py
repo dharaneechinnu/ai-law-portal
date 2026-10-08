@@ -8,6 +8,7 @@ from app.api.deps import require_roles
 from app.core.db import get_db
 from app.models import User
 from app.schemas import AdminUserCreate, AdminUserCreated, AdminUserOut, AdminUserUpdate
+from app.services import email
 from app.services import users as users_svc
 
 router = APIRouter(prefix="/admin/users", tags=["admin"])
@@ -29,12 +30,13 @@ def list_users(db: Session = Depends(get_db), admin: User = Depends(admin_only))
 
 
 @router.post("", response_model=AdminUserCreated, status_code=201)
-def create_user(body: AdminUserCreate, db: Session = Depends(get_db), admin: User = Depends(admin_only)):
+async def create_user(body: AdminUserCreate, db: Session = Depends(get_db), admin: User = Depends(admin_only)):
     user, token = users_svc.create_user(
         db, admin, name=body.name.strip(), email=body.email, role=body.role,
         designation=(body.designation or "").strip() or None, password=body.password or None,
     )
-    return AdminUserCreated(user=admin_user_out(user), invite_token=token)
+    emailed = await email.send_invite(db, user, token, admin) if token else False
+    return AdminUserCreated(user=admin_user_out(user), invite_token=token, emailed=emailed)
 
 
 @router.patch("/{user_id}", response_model=AdminUserOut)
@@ -45,6 +47,7 @@ def update_user(user_id: uuid.UUID, body: AdminUserUpdate, db: Session = Depends
 
 
 @router.post("/{user_id}/invite", response_model=AdminUserCreated)
-def reissue_invite(user_id: uuid.UUID, db: Session = Depends(get_db), admin: User = Depends(admin_only)):
+async def reissue_invite(user_id: uuid.UUID, db: Session = Depends(get_db), admin: User = Depends(admin_only)):
     user, token = users_svc.reissue_invite(db, user_id)
-    return AdminUserCreated(user=admin_user_out(user), invite_token=token)
+    emailed = await email.send_invite(db, user, token, admin)
+    return AdminUserCreated(user=admin_user_out(user), invite_token=token, emailed=emailed)

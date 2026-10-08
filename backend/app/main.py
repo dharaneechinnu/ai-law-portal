@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
     admin, agents, ai_settings, analytics, assistant, audit, auth, briefing, calendar, clients, dashboard, documents,
-    firm_settings, health, legal, matters, notifications, people, tasks,
+    email_settings, firm_settings, health, legal, matters, notifications, people, tasks,
 )
 from app.core import scheduler
 from app.core.config import settings
@@ -43,5 +43,6 @@ for r in (health.router, auth.router, clients.router, matters.router, documents.
           calendar.router, calendar.hearings_router, people.router, briefing.router,
           notifications.router, agents.router, agents.approvals_router,
           assistant.router, audit.router,
-          analytics.router, firm_settings.router):
+          analytics.router, firm_settings.router,
+          email_settings.router):
     app.include_router(r, prefix="/api")
