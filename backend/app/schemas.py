@@ -619,6 +619,17 @@ class AvailabilityOut(BaseModel):
     busy: list[BusyOut]
 
 
+# ---- Notifications ----
+class NotificationOut(ORM):
+    id: uuid.UUID
+    kind: str
+    title: str
+    body: str | None = None
+    link: str | None = None
+    read_at: datetime | None = None
+    created_at: datetime
+
+
 # ---- Daily briefing ----
 class BriefingOut(ORM):
     id: uuid.UUID
