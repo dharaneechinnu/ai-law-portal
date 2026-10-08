@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     embedding_dim: int = 768
     access_token_minutes: int = 60 * 8
     scheduler_enabled: bool = True
+    public_url: str | None = None  # base URL of the web app, used in emailed links (defaults to the first CORS origin)
 
 
 settings = Settings()
