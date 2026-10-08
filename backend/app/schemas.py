@@ -485,3 +485,98 @@ class TaskOut(BaseModel):
     depends_on: list[uuid.UUID] = []
     blocked: bool = False
     created_at: datetime
+
+
+# ---- Calendar & hearings ----
+HEARING_STATUSES = {"scheduled", "held", "adjourned", "cancelled"}
+
+
+class CalItemOut(BaseModel):
+    kind: str  # event / hearing
+    id: uuid.UUID
+    title: str
+    start: datetime
+    end: datetime
+    location: str | None = None
+    matter_id: uuid.UUID | None = None
+    matter_title: str | None = None
+    status: str
+    owner_id: uuid.UUID | None = None
+    attendee_ids: list[uuid.UUID] = []
+    outcome: str | None = None
+
+
+class EventIn(BaseModel):
+    title: str
+    start: datetime
+    end: datetime
+    location: str | None = None
+    matter_id: uuid.UUID | None = None
+    attendee_ids: list[uuid.UUID] = []
+
+    @field_validator("title")
+    @classmethod
+    def title_required(cls, v):
+        v = v.strip()
+        if not v or len(v) > 300:
+            raise ValueError("Title is required (max 300 characters)")
+        return v
+
+
+class EventUpdate(BaseModel):
+    title: str | None = None
+    start: datetime | None = None
+    end: datetime | None = None
+    location: str | None = None
+    matter_id: uuid.UUID | None = None
+    attendee_ids: list[uuid.UUID] | None = None
+    status: str | None = None
+
+    @field_validator("status")
+    @classmethod
+    def valid_status(cls, v):
+        if v is not None and v not in {"confirmed", "cancelled"}:
+            raise ValueError("Unknown status")
+        return v
+
+
+class HearingIn(BaseModel):
+    matter_id: uuid.UUID
+    scheduled_at: datetime
+    court_room: str | None = None
+    purpose: str | None = None
+    status: str = "scheduled"
+    outcome: str | None = None
+
+    @field_validator("status")
+    @classmethod
+    def valid_status(cls, v):
+        if v not in HEARING_STATUSES:
+            raise ValueError("Unknown hearing status")
+        return v
+
+
+class HearingUpdate(BaseModel):
+    scheduled_at: datetime | None = None
+    court_room: str | None = None
+    purpose: str | None = None
+    status: str | None = None
+    outcome: str | None = None
+
+    @field_validator("status")
+    @classmethod
+    def valid_status(cls, v):
+        if v is not None and v not in HEARING_STATUSES:
+            raise ValueError("Unknown hearing status")
+        return v
+
+
+class HearingOut(ORM):
+    id: uuid.UUID
+    matter_id: uuid.UUID
+    matter_title: str | None = None
+    scheduled_at: datetime
+    court_room: str | None = None
+    purpose: str | None = None
+    status: str
+    outcome: str | None = None
