@@ -17,13 +17,13 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Court, Firm, Judgment, LegalCase, LegalDevelopment, Matter, MatterLegalMatch
+from app.models import Court, Judgment, LegalCase, LegalDevelopment, Matter, MatterLegalMatch
+from app.services import firm_settings
 from app.services.matters import add_timeline
 from app.services.notifications import matter_team, notify
 
 WEIGHTS = {"semantic": 0.35, "provisions": 0.2, "facts": 0.15, "court": 0.1, "case_type": 0.1, "recency": 0.1}
 MIN_MATCH = 0.3  # below this a match is not stored
-DEFAULT_ALERT_THRESHOLD = 0.6  # at or above this a match is an alert; firm setting "legal_alert_threshold"
 
 STOP = set("""a an the and or of to in on for by with from at as is are was were be been this that these those it its
 which who whom under section act vs v versus case court high supreme district order judgment petitioner respondent
@@ -31,12 +31,7 @@ appellant state india shall not no any all such other said""".split())
 
 
 def alert_threshold(db: Session) -> float:
-    firm = db.scalar(select(Firm))
-    value = (firm.settings or {}).get("legal_alert_threshold") if firm else None
-    try:
-        return float(value) if value is not None else DEFAULT_ALERT_THRESHOLD
-    except (TypeError, ValueError):
-        return DEFAULT_ALERT_THRESHOLD
+    return firm_settings.get(db, "legal_alert_threshold")
 
 
 def matter_text(m: Matter) -> str:

@@ -10,13 +10,12 @@ from sqlalchemy.orm import Session
 
 from app.models import Agent, AgentPolicy, AgentTool, ApprovalRequest, Task, User
 from app.schemas import ActionResultOut, ApprovalOut
-from app.services import audit
+from app.services import audit, firm_settings
 from app.services.agent_tools import AGENTS, TOOLS
 from app.services.notifications import notify
 from app.services.policy import ALLOWED, APPROVAL, DISABLED, decide
 
 log = logging.getLogger(__name__)
-APPROVAL_TTL = timedelta(days=7)
 
 
 def ensure_registry(db: Session) -> None:
@@ -166,7 +165,7 @@ def reject(db: Session, actor: User, request_id: uuid.UUID) -> ApprovalOut:
 
 
 def expire_old(db: Session, reqs: list[ApprovalRequest]) -> None:
-    cutoff = datetime.now(timezone.utc) - APPROVAL_TTL
+    cutoff = datetime.now(timezone.utc) - timedelta(days=firm_settings.get(db, "approval_expiry_days"))
     for r in reqs:
         if r.status == "pending" and r.created_at and r.created_at < cutoff:
             r.status = "expired"

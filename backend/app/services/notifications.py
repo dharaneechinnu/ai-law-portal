@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import CalendarEvent, Hearing, Matter, MatterMember, Notification, Task, User
+from app.services import firm_settings
 
 log = logging.getLogger(__name__)
 
@@ -50,22 +51,25 @@ def _when(at: datetime, user: User | None) -> str:
 
 
 def send_reminders(db: Session, now: datetime | None = None) -> int:
-    """Hearings in the next 24 h, meetings in the next 15 min, tasks due in 24 h, and newly overdue tasks."""
+    """Upcoming hearings, meetings and due tasks (lead times are firm settings), and newly overdue tasks."""
     now = now or datetime.now(timezone.utc)
+    hearing_ahead = timedelta(hours=firm_settings.get(db, "hearing_reminder_hours"))
+    meeting_ahead = timedelta(minutes=firm_settings.get(db, "meeting_reminder_minutes"))
+    due_ahead = timedelta(hours=firm_settings.get(db, "task_due_reminder_hours"))
     sent = 0
     for h in db.scalars(select(Hearing).where(Hearing.status == "scheduled", Hearing.scheduled_at > now,
-                                              Hearing.scheduled_at <= now + timedelta(hours=24))).all():
+                                              Hearing.scheduled_at <= now + hearing_ahead)).all():
         matter = db.get(Matter, h.matter_id)
         for uid in matter_team(db, h.matter_id):
             sent += notify(db, uid, "hearing", f"Hearing: {matter.title}", body=f"{h.purpose or 'Hearing'} · {_when(h.scheduled_at, db.get(User, uid))}",
                            link=f"/matters/{h.matter_id}", dedupe_key=f"hearing:{h.id}:{h.scheduled_at.isoformat()}")
     for e in db.scalars(select(CalendarEvent).where(CalendarEvent.status != "cancelled", CalendarEvent.starts_at > now,
-                                                    CalendarEvent.starts_at <= now + timedelta(minutes=15))).all():
+                                                    CalendarEvent.starts_at <= now + meeting_ahead)).all():
         for uid in {e.owner_id, *(uuid.UUID(a) for a in (e.attendee_ids or []))}:
             sent += notify(db, uid, "meeting", f"Starting soon: {e.title}", body=_when(e.starts_at, db.get(User, uid)),
                            link="/calendar", dedupe_key=f"event:{e.id}:{e.starts_at.isoformat()}")
     for t in db.scalars(select(Task).where(Task.status == "open", Task.assignee_id.is_not(None), Task.due_at.is_not(None),
-                                           Task.due_at <= now + timedelta(hours=24))).all():
+                                           Task.due_at <= now + due_ahead)).all():
         link = f"/matters/{t.matter_id}" if t.matter_id else "/tasks"
         if t.due_at > now:
             sent += notify(db, t.assignee_id, "deadline", f"Due soon: {t.title}", body=_when(t.due_at, db.get(User, t.assignee_id)),
