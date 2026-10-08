@@ -397,3 +397,91 @@ class DashboardOut(BaseModel):
     overdue: list[DashItem]
     alerts: list[DashAlert]
     matters: list[DashMatter]
+
+
+# ---- Tasks ----
+TASK_PRIORITIES = {"low", "medium", "high", "urgent"}
+TASK_STATUSES = {"open", "done", "archived"}
+
+
+class TaskIn(BaseModel):
+    title: str
+    description: str | None = None
+    matter_id: uuid.UUID | None = None
+    assignee_id: uuid.UUID | None = None
+    due_at: datetime | None = None
+    priority: str = "medium"
+    kind: str = "task"
+    depends_on: list[uuid.UUID] = []
+
+    @field_validator("title")
+    @classmethod
+    def title_required(cls, v):
+        v = v.strip()
+        if not v or len(v) > 300:
+            raise ValueError("Title is required (max 300 characters)")
+        return v
+
+    @field_validator("priority")
+    @classmethod
+    def valid_priority(cls, v):
+        if v not in TASK_PRIORITIES:
+            raise ValueError("Unknown priority")
+        return v
+
+    @field_validator("kind")
+    @classmethod
+    def valid_kind(cls, v):
+        if v not in {"task", "follow_up", "deadline"}:
+            raise ValueError("Unknown task kind")
+        return v
+
+
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    assignee_id: uuid.UUID | None = None
+    due_at: datetime | None = None
+    priority: str | None = None
+    status: str | None = None
+    depends_on: list[uuid.UUID] | None = None
+
+    @field_validator("title")
+    @classmethod
+    def title_not_blank(cls, v):
+        if v is not None:
+            v = v.strip()
+            if not v or len(v) > 300:
+                raise ValueError("Title is required (max 300 characters)")
+        return v
+
+    @field_validator("priority")
+    @classmethod
+    def valid_priority(cls, v):
+        if v is not None and v not in TASK_PRIORITIES:
+            raise ValueError("Unknown priority")
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def valid_status(cls, v):
+        if v is not None and v not in TASK_STATUSES:
+            raise ValueError("Unknown status")
+        return v
+
+
+class TaskOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    description: str | None = None
+    matter_id: uuid.UUID | None = None
+    matter_title: str | None = None
+    assignee_id: uuid.UUID | None = None
+    assignee_name: str | None = None
+    due_at: datetime | None = None
+    priority: str
+    status: str
+    kind: str
+    depends_on: list[uuid.UUID] = []
+    blocked: bool = False
+    created_at: datetime
