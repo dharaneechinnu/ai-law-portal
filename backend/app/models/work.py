@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, String, Text
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base, IdMixin, TimestampMixin
@@ -63,3 +63,15 @@ class Notification(IdMixin, Base):
     dedupe_key: Mapped[str | None] = mapped_column(String(200), index=True)
     read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Briefing(IdMixin, TimestampMixin, Base):
+    """One daily briefing per user per local day. Facts come from the database; the AI only words the summary."""
+
+    __tablename__ = "briefings"
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    for_date: Mapped[date] = mapped_column(Date)
+    summary: Mapped[str] = mapped_column(Text)
+    facts: Mapped[dict] = mapped_column(JSON, default=dict)
+    source: Mapped[str] = mapped_column(String(20), default="facts")  # ai / facts
+    __table_args__ = (UniqueConstraint("user_id", "for_date"),)
