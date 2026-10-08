@@ -67,7 +67,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Calendar & hearings** — Calendar events and hearings per matter/user behind `CalendarProvider`.
       Ships with a local mock provider; Google/Outlook slot in later. `LocalCalendarProvider`, `/api/calendar` (range query,
       create/edit/cancel events; organiser-only edits), `/api/hearings` (list/create/update; keeps `matters.next_hearing` current,
-      logs to timeline). `/calendar` week view and the matter Hearings tab. Month/day views not built. Not yet run against a live DB.
+      logs to timeline). `/calendar` week and month views (click a day to open its week) and the matter Hearings tab. Not yet run against a live DB.
 - [x] **People & availability** — Lawyer list/create/edit/view with practice areas, workload, and free/busy from calendar plus working hours.
       Exposed as a service so agents can ask "is X free?".
       Built: `/people` directory (search, practice-area filter, live free/busy/off status, workload) with profile drawer;
