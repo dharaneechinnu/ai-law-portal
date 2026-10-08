@@ -48,6 +48,7 @@ def own_event_or_404(db: Session, event_id: uuid.UUID, user: User) -> CalendarEv
 
 def refresh_next_hearing(db: Session, matter_id: uuid.UUID) -> None:
     """Keep Matter.next_hearing equal to the earliest upcoming scheduled hearing."""
+    db.flush()  # sessions don't autoflush; the query below must see the hearing change just made
     matter = db.get(Matter, matter_id)
     if matter:
         matter.next_hearing = db.scalar(
