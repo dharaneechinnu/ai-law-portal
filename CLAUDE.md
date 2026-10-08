@@ -91,7 +91,7 @@ frontend/src/
 - Sprint 5 built: audit log screen (append-only by DB trigger), analytics, model routing per job, firm notification settings,
   SMTP email (Settings > Email, emailed invites), calendar month view.
 - Not yet: Google/Outlook calendar, storage settings, data retention, API keys, scheduled eCourts sync, emailed reminders,
-  frontend tests. Backend tests: `pytest` in backend/ (22 tests, own `ai_law_test` DB).
+  frontend tests. Backend tests: `pytest` in backend/ (25 tests, own `ai_law_test` DB).
 - Blocked on user: choice of a tool-calling LLM + embedding model (nothing configured in Settings > AI providers yet);
   eCourts base URL, endpoint paths and a sample response.
 

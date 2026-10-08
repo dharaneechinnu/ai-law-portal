@@ -1,0 +1,37 @@
+"""First-run setup, invite activation and admin-only areas."""
+import uuid
+
+from conftest import auth, headers
+
+
+def test_setup_only_once(client, admin):
+    r = client.post("/api/auth/setup", json={"firm_name": "Again", "name": "X", "email": "x@test.firm", "password": "Admin@12345"})
+    assert r.status_code == 409
+
+
+def test_invite_link_activates_once(client, admin):
+    email = f"invitee.{uuid.uuid4().hex[:6]}@test.firm"
+    created = client.post("/api/admin/users", headers=headers(admin), json={"name": "Invitee", "email": email, "role": "paralegal"}).json()
+    token = created["invite_token"]
+    assert token and created["user"]["status"] == "invited"
+
+    info = client.get(f"/api/auth/invite/{token}").json()
+    assert info["email"] == email and info["firm_name"] == "Test Firm"
+
+    assert client.post("/api/auth/accept-invite", json={"token": token, "password": "short"}).status_code in (400, 422)
+    r = client.post("/api/auth/accept-invite", json={"token": token, "password": "Str0ng!pass", "name": "Invited Person"})
+    assert r.status_code == 200 and r.json()["user"]["name"] == "Invited Person"
+    assert auth(client, email, "Str0ng!pass")  # can sign in with the new password
+
+    # the link works once
+    assert client.get(f"/api/auth/invite/{token}").status_code == 404
+    assert client.post("/api/auth/accept-invite", json={"token": token, "password": "Str0ng!pass2"}).status_code == 404
+
+
+def test_bad_or_disabled_access(client, admin, make_user):
+    assert client.get("/api/auth/invite/not-a-real-token").status_code == 404
+    user = make_user("associate")
+    client.patch(f"/api/admin/users/{user['id']}", headers=headers(admin), json={"is_active": False})
+    assert client.post("/api/auth/login", json={"email": user["email"], "password": "Passw0rd!x"}).status_code in (401, 403)
+    assert client.get("/api/admin/users", headers=headers(make_user("partner"))).status_code == 403
+    assert client.get("/api/settings/email", headers=headers(make_user("lawyer"))).status_code == 403
