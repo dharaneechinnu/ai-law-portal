@@ -90,22 +90,29 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 4 — LangGraph + Agent Tools + Policy + Approval
 
-- [ ] **Policy engine** — Server-side decision per action: `ALLOWED` / `APPROVAL_REQUIRED` / `DISABLED`, checking user role, agent policy, overrides, protected resources.
+- [x] **Policy engine** — Server-side decision per action: `ALLOWED` / `APPROVAL_REQUIRED` / `DISABLED`, checking user role, agent policy, overrides, protected resources.
       The LLM can request an action but never decides permission.
-- [ ] **Agent tool registry** — Controlled tools (case, task, calendar, legal search, documents, email) that call application services only.
+      `services/policy.py`: kill switch, agent on/off, role, case access, active override, stored rule or tool default, then mode. Verified end to end (28 checks).
+- [x] **Agent tool registry** — Controlled tools (case, task, calendar, legal search, documents, email) that call application services only.
       Every call is routed through the policy engine first.
+      `services/agent_tools.py`: 10 tools (search/ask matters, list/create/complete/delete tasks, find people, availability, schedule meeting, email). Arguments validated server-side; access precheck so blocked requests reveal nothing.
 - [ ] **LangGraph agents** — Daily Briefing, Matter Intelligence, Legal Research, Scheduling, Task agents with persisted execution state.
       Runs server-side only; no privileged action from the browser.
-- [ ] **Execution modes** — Suggest / Approval / Autonomous, defaulting to approval for destructive and external actions.
+- [x] **Execution modes** — Suggest / Approval / Autonomous, defaulting to approval for destructive and external actions.
       Mode is enforced by the policy engine.
-- [ ] **Human approval flow** — Pending `ApprovalRequest` with Approve/Reject in the UI; approval re-runs the policy check, executes, then audits.
+      Effective mode = stricter of the agent's mode and the user's Account preference; agents start in Ask first.
+- [x] **Human approval flow** — Pending `ApprovalRequest` with Approve/Reject in the UI; approval re-runs the policy check, executes, then audits.
       Records who approved and when.
-- [ ] **Temporary overrides** — Admin grants extra permissions to an agent with an expiry; they revert automatically.
+      `/api/approvals` + Approvals page with sidebar badge. Approve re-runs the policy, executes as the requester, records approver/time, audits. Pending requests expire after 7 days.
+- [x] **Temporary overrides** — Admin grants extra permissions to an agent with an expiry; they revert automatically.
       Expiry is checked at decision time.
-- [ ] **Kill switch** — One setting disables all agent mutations and external actions.
+      `/api/agents/overrides` (grant, end early). Checked at decision time; expired ones are kept for the record.
+- [x] **Kill switch** — One setting disables all agent mutations and external actions.
       Read-only Q&A can stay on if configured.
+      `firms.settings.agents_kill_switch`; blocks mutations and external actions, read-only tools still run, and blocks pending approvals at approve time.
 - [ ] **Scheduling flow** — "Schedule a meeting with Ayodari tomorrow": find lawyer → check availability/working hours → propose → approval → create event → notify → audit.
-- [ ] **Permission demo flow** — "Delete this task" is blocked while DISABLED; after the admin flips the policy it becomes approval-required or allowed and executes.
+- [x] **Permission demo flow** — "Delete this task" is blocked while DISABLED; after the admin flips the policy it becomes approval-required or allowed and executes.
+      Verified via the API: DELETE_TASK blocked while Off, waits for approval after the admin switches it to Ask first, runs once approved. The chat trigger comes with the LangGraph agents.
 
 ## Sprint 5 — Analytics + Settings + Providers + Audit
 
@@ -115,10 +122,12 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Changing a route needs no code change.
 - [ ] **Settings: legal data / calendar / email / storage** — Configure integrations and "Test Connection" from the UI.
       Secrets stay backend-only.
-- [ ] **Settings: agents & permissions UI** — Per-action policy editor, overrides, kill switch, agent settings.
+- [x] **Settings: agents & permissions UI** — Per-action policy editor, overrides, kill switch, agent settings.
+      Settings > AI agents (admin): kill switch, agent on/off and mode, per-action rule, temporary overrides.
 - [ ] **Settings: notifications, retention, API keys** — Daily briefing, reminders, legal alert thresholds, data retention, API keys.
-- [ ] **Audit log** — Immutable record of user, agent, action, resource, policy decision, approval, result, provider.
+- [~] **Audit log** — Immutable record of user, agent, action, resource, policy decision, approval, result, provider.
       Searchable in Settings → Security and per matter.
+      Recording built (`services/audit.py`): every agent request, decision, approval, policy/override/kill-switch change. Search screen not built yet.
 - [ ] **Analytics** — Firm (matters, overdue, hearings, workload, duration), legal intelligence (judgments, high-impact, reviewed), AI (actions, approved/rejected/blocked, model usage).
       Only metrics that drive decisions.
 
