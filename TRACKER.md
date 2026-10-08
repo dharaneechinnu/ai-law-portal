@@ -127,9 +127,9 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Settings: agents & permissions UI** — Per-action policy editor, overrides, kill switch, agent settings.
       Settings > AI agents (admin): kill switch, agent on/off and mode, per-action rule, temporary overrides.
 - [ ] **Settings: notifications, retention, API keys** — Daily briefing, reminders, legal alert thresholds, data retention, API keys.
-- [~] **Audit log** — Immutable record of user, agent, action, resource, policy decision, approval, result, provider.
+- [x] **Audit log** — Immutable record of user, agent, action, resource, policy decision, approval, result, provider.
       Searchable in Settings → Security and per matter.
-      Recording built (`services/audit.py`): every agent request, decision, approval, policy/override/kill-switch change. Search screen not built yet.
+      Recording (`services/audit.py`) of every agent request, decision, approval and policy/override/kill-switch change; Postgres trigger makes `audit_logs` append-only. `/api/audit` (admin search by action, actor, decision, date) and `/api/audit/matters/{id}`; Settings > Audit log and the matter AI Activity tab.
 - [ ] **Analytics** — Firm (matters, overdue, hearings, workload, duration), legal intelligence (judgments, high-impact, reviewed), AI (actions, approved/rejected/blocked, model usage).
       Only metrics that drive decisions.
 
