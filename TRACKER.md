@@ -96,8 +96,9 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Agent tool registry** — Controlled tools (case, task, calendar, legal search, documents, email) that call application services only.
       Every call is routed through the policy engine first.
       `services/agent_tools.py`: 10 tools (search/ask matters, list/create/complete/delete tasks, find people, availability, schedule meeting, email). Arguments validated server-side; access precheck so blocked requests reveal nothing.
-- [ ] **LangGraph agents** — Daily Briefing, Matter Intelligence, Legal Research, Scheduling, Task agents with persisted execution state.
+- [x] **LangGraph agents** — Daily Briefing, Matter Intelligence, Legal Research, Scheduling, Task agents with persisted execution state.
       Runs server-side only; no privileged action from the browser.
+      `services/agents.py`: one LangGraph graph (plan -> act -> plan) per agent with its own tool set, server-side only, state saved in `agent_executions` and continued across turns, 8-step limit. `/api/assistant/chat` + floating Assistant panel. Tested with a scripted model; needs a tool-calling model in Settings > AI providers to use.
 - [x] **Execution modes** — Suggest / Approval / Autonomous, defaulting to approval for destructive and external actions.
       Mode is enforced by the policy engine.
       Effective mode = stricter of the agent's mode and the user's Account preference; agents start in Ask first.
@@ -110,9 +111,10 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Kill switch** — One setting disables all agent mutations and external actions.
       Read-only Q&A can stay on if configured.
       `firms.settings.agents_kill_switch`; blocks mutations and external actions, read-only tools still run, and blocks pending approvals at approve time.
-- [ ] **Scheduling flow** — "Schedule a meeting with Ayodari tomorrow": find lawyer → check availability/working hours → propose → approval → create event → notify → audit.
+- [x] **Scheduling flow** — "Schedule a meeting with Ayodari tomorrow": find lawyer → check availability/working hours → propose → approval → create event → notify → audit.
+      Scheduling agent: FIND_PEOPLE -> CHECK_AVAILABILITY -> CREATE_EVENT (waits for approval) -> approve books it, invitee notified, every step audited. Verified end to end.
 - [x] **Permission demo flow** — "Delete this task" is blocked while DISABLED; after the admin flips the policy it becomes approval-required or allowed and executes.
-      Verified via the API: DELETE_TASK blocked while Off, waits for approval after the admin switches it to Ask first, runs once approved. The chat trigger comes with the LangGraph agents.
+      Verified via the API: DELETE_TASK blocked while Off, waits for approval after the admin switches it to Ask first, runs once approved. Also verified through the Task agent chat.
 
 ## Sprint 5 — Analytics + Settings + Providers + Audit
 

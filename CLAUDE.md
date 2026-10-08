@@ -80,24 +80,18 @@ frontend/src/
   agents/permissions UI, notification/retention/API-key settings, audit log, decision-driving analytics only (no decorative charts).
 
 ## 7. Current state (update when it changes; details in TRACKER.md)
-- Sprint 1 is complete and was verified end to end on Postgres 16 + pgvector, with a stub OpenAI-compatible model endpoint
-  (a real LLM is still to be tried).
-- Sprint 2 (eCourts + Legal Intelligence) is built: config-driven `ECourtsProvider`, manual sync, matching, comparison, alerts,
-  `/legal` page and the matter Legal Intelligence tab. Verified only against a local mock API; scheduled sync not built.
-- Access: first-run `/setup` creates the firm + first admin; admins create users at **Team & access** (`/admin/users`) via
-  one-time invite links (`/register?token=…`, hashed in DB, 7 days) or temporary passwords. No public self-sign-up.
-- Built backend: auth (`/login`, `/me` GET/PATCH, `/users`, `/setup`, `/invite/{token}`, `/accept-invite`), admin users
-  (list/create/patch/reissue invite), clients, matters (+members, timeline), documents (upload/list/reprocess/ask),
-  AI provider settings, legal data settings (`/settings/legal`), legal intelligence (`/legal/sync`, `/legal/alerts`,
-  `/legal/matters/{id}/matches`, match review/compare), health.
-- Built frontend: animated auth screens, admin panel, account page, clients, matters list/create, 10-tab matter workspace
-  (Tasks/Hearings/Communications/AI Activity are placeholders), Legal Intelligence page + matter tab, AI and eCourts settings.
-  Dashboard/People/Tasks/Analytics pages are placeholders.
-- RBAC: admin-only on AI settings and user admin. Per-matter access control in `services/access.py` (every matter-scoped
-  route uses `get_matter_or_404(db, id, user)`). Not yet: email delivery of invites,
-  automated tests, Sprints 2–5.
-- Blocked on user: eCourts base URL, endpoint paths and a sample response to fill in Settings → Legal data (API key is in hand,
-  never in code); choice of first LLM + embedding model; confirm pgvector installed.
+- Database: local Postgres 18 + pgvector 0.8.6, migrations at head. Demo admin `admin@firm.com`; test data prefixed "E2E".
+- Sprints 1–3 done and verified end to end against the real database (dashboard with drag-and-drop layout saved per user,
+  tasks, calendar & hearings, people & availability, daily briefing, notifications + reminders via APScheduler).
+- Sprint 2 (eCourts) built; verified only against a local mock API; scheduled sync not built.
+- Sprint 4 done: policy engine (`services/policy.py`), tool registry (`services/agent_tools.py`), runtime with approvals and
+  audit (`services/agent_runtime.py`, `services/audit.py`), LangGraph agents (`services/agents.py`), Approvals page,
+  Settings > AI agents (kill switch, modes, rules, overrides), floating Assistant. Default: every agent "Ask first";
+  DELETE_TASK off; read-only tools allowed. Agents tested with a scripted fake model only.
+- Not yet: audit search screen, analytics, model routing, integration/notification/retention settings, email provider,
+  month/day calendar views, automated test suite (end-to-end scripts were run by hand).
+- Blocked on user: choice of a tool-calling LLM + embedding model (nothing configured in Settings > AI providers yet);
+  eCourts base URL, endpoint paths and a sample response.
 
 ## 8. How to work in this repo
 - Commands: backend `uvicorn app.main:app --reload` (in `backend/`, venv active); frontend `npm run dev` / `npm run build`
