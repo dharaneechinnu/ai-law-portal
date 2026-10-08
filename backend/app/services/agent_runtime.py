@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Agent, AgentPolicy, AgentTool, ApprovalRequest, User
+from app.models import Agent, AgentPolicy, AgentTool, ApprovalRequest, Task, User
 from app.schemas import ActionResultOut, ApprovalOut
 from app.services import audit
 from app.services.agent_tools import AGENTS, TOOLS
@@ -34,11 +34,17 @@ def ensure_registry(db: Session) -> None:
     db.commit()
 
 
-def _matter_id(args: dict | None) -> uuid.UUID | None:
+def _matter_id(db: Session, args: dict | None) -> uuid.UUID | None:
+    """The matter an action touches: given directly, or through the task it names (for the matter's audit view)."""
     try:
-        return uuid.UUID(str(args["matter_id"])) if args and args.get("matter_id") else None
+        if args and args.get("matter_id"):
+            return uuid.UUID(str(args["matter_id"]))
+        if args and args.get("task_id"):
+            task = db.get(Task, uuid.UUID(str(args["task_id"])))
+            return task.matter_id if task else None
     except ValueError:
-        return None
+        pass
+    return None
 
 
 def _validate(action: str, args: dict):
@@ -70,7 +76,7 @@ async def request_action(db: Session, user: User, agent_key: str | None, action:
             db.commit()
             return ActionResultOut(status="blocked", decision=DISABLED, reason=str(e.detail))
     d = decide(db, user, agent_key, action, args)
-    matter_id = _matter_id(args)
+    matter_id = _matter_id(db, args)
 
     if d.decision == DISABLED:
         audit.record(db, action=action, user_id=user.id, agent_key=agent_key, matter_id=matter_id,
@@ -128,7 +134,8 @@ async def approve(db: Session, actor: User, request_id: uuid.UUID) -> ApprovalOu
         req.status, req.decided_by, req.decided_at = "rejected", actor.id, now
         req.payload = {**req.payload, "result": {"error": f"Blocked when approved: {d.reason}"}}
         audit.record(db, action=req.action, user_id=requester.id, agent_key=agent_key, resource_type="approval_request",
-                     resource_id=str(req.id), policy_decision=DISABLED, approved=True, approved_by=actor.id,
+                     resource_id=str(req.id), matter_id=_matter_id(db, args), policy_decision=DISABLED, approved=True,
+                     approved_by=actor.id,
                      executed=False, result={"reason": d.reason})
         db.commit()
         return approval_out(db, req)
@@ -142,7 +149,7 @@ async def approve(db: Session, actor: User, request_id: uuid.UUID) -> ApprovalOu
     req.status, req.decided_by, req.decided_at = "approved", actor.id, now
     req.payload = {**req.payload, "result": result}
     audit.record(db, action=req.action, user_id=requester.id, agent_key=agent_key, resource_type="approval_request",
-                 resource_id=str(req.id), matter_id=_matter_id(args), policy_decision=d.decision, approved=True,
+                 resource_id=str(req.id), matter_id=_matter_id(db, args), policy_decision=d.decision, approved=True,
                  approved_by=actor.id, executed=executed, result=result)
     db.commit()
     return approval_out(db, req)
@@ -152,8 +159,8 @@ def reject(db: Session, actor: User, request_id: uuid.UUID) -> ApprovalOut:
     req = _pending_or_404(db, request_id, actor)
     req.status, req.decided_by, req.decided_at = "rejected", actor.id, datetime.now(timezone.utc)
     audit.record(db, action=req.action, user_id=req.user_id, agent_key=req.payload.get("agent_key"),
-                 resource_type="approval_request", resource_id=str(req.id), approved=False, approved_by=actor.id,
-                 executed=False)
+                 resource_type="approval_request", resource_id=str(req.id),
+                 matter_id=_matter_id(db, req.payload.get("args")), approved=False, approved_by=actor.id, executed=False)
     db.commit()
     return approval_out(db, req)
 
