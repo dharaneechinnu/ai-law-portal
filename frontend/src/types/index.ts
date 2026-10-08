@@ -266,3 +266,26 @@ export interface Hearing {
   status: string;
   outcome?: string | null;
 }
+
+export interface Person {
+  id: string;
+  name: string;
+  email: string;
+  role_name: string;
+  designation?: string | null;
+  practice_areas: string[];
+  status: "free" | "busy" | "off";
+  busy_until?: string | null;
+  open_tasks: number;
+  overdue_tasks: number;
+  active_matters: number;
+}
+
+export interface PersonDetail extends Person {
+  phone?: string | null;
+  office_location?: string | null;
+  timezone: string;
+  working_hours: Record<string, [string, string] | null>;
+  busy: { start: string; end: string; title: string; kind: string }[];
+  matters: { id: string; title: string; matter_number: string }[];
+}
