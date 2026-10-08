@@ -4,6 +4,13 @@ Local-development prototype: FastAPI + PostgreSQL (pgvector) backend, React + Vi
 See [TRACKER.md](TRACKER.md) for the full feature list and status, and
 [CLAUDE.md](CLAUDE.md) for the complete project context (scope, architecture rules, roadmap).
 
+## Project tracker spreadsheet
+[docs/Project-Tracker.xlsx](docs/Project-Tracker.xlsx) tracks every task with status, priority, dependencies, owner and target date.
+- **Summary**: live counts and % done per area and per sprint, plus open items needing input.
+- **Frontend**, **Backend**, **AI**: one row per task. Change the Status dropdown (Done / In Progress / Not Started / Blocked) and the Summary updates.
+
+[TRACKER.md](TRACKER.md) remains the feature-level view; the spreadsheet is the detailed task list.
+
 ## What it does
 A law-firm portal that combines matter management (clients, matters, documents, tasks, hearings)
 with AI: cited Q&A over matter documents (RAG), eCourts judgment matching and alerts, and
