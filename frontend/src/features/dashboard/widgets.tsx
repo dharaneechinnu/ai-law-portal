@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import { AlertTriangle, Briefcase, CalendarClock, CheckCircle2, Gavel, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Dashboard, DashItem } from "@/types";
+import { BriefingCard } from "./BriefingCard";
 
-export type WidgetId = "stats" | "today" | "overdue" | "alerts" | "matters";
+export type WidgetId = "briefing" | "stats" | "today" | "overdue" | "alerts" | "matters";
 export type Size = "half" | "full";
 export interface WidgetLayout { id: WidgetId; size: Size; hidden: boolean }
 
 export const WIDGETS: Record<WidgetId, { title: string; hint: string; size: Size }> = {
+  briefing: { title: "Daily briefing", hint: "Today in a few lines", size: "full" },
   stats: { title: "Overview", hint: "Key counts", size: "full" },
   today: { title: "Today", hint: "Hearings and tasks due", size: "half" },
   overdue: { title: "Overdue", hint: "Tasks past due", size: "half" },
@@ -92,6 +94,8 @@ function ItemList({ items, empty, showDay }: { items: DashItem[]; empty: string;
 
 export function WidgetBody({ id, data }: { id: WidgetId; data: Dashboard }) {
   switch (id) {
+    case "briefing":
+      return <BriefingCard />;
     case "stats":
       return (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

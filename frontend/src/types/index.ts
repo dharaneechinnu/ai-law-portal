@@ -289,3 +289,12 @@ export interface PersonDetail extends Person {
   busy: { start: string; end: string; title: string; kind: string }[];
   matters: { id: string; title: string; matter_number: string }[];
 }
+
+export interface Briefing {
+  id: string;
+  for_date: string;
+  summary: string;
+  source: "ai" | "facts";
+  created_at: string;
+  facts: { hearings: unknown[]; meetings: unknown[]; due_today: unknown[]; overdue_count: number; alert_count: number };
+}
