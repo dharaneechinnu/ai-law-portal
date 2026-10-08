@@ -57,7 +57,7 @@ async def compare(db: Session, match: MatterLegalMatch) -> dict:
     court = db.get(Court, j.court_id) if j.court_id else None
     if not (j.summary or j.full_text):
         raise ValueError("This judgment has no summary or text to compare. Check the eCourts field mapping.")
-    llm = ai_registry.get_llm(db)
+    llm = ai_registry.get_llm(db, "comparison")
     answer = await llm.complete([
         {"role": "system", "content": SYSTEM},
         {"role": "user", "content": f"MATTER\n{_matter_block(matter)}\n\nJUDGMENT\n{_judgment_block(j, court)}"},

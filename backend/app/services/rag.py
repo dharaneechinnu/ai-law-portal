@@ -48,7 +48,7 @@ async def ask_matter(db: Session, matter_id: uuid.UUID, question: str) -> AskOut
         f"[{i}] ({docs[c.document_id].filename}, page {c.page_number or 'n/a'})\n{c.content}"
         for i, c in enumerate(chunks, 1)
     )
-    llm = ai_registry.get_llm(db)
+    llm = ai_registry.get_llm(db, "qa")
     answer = await llm.complete([
         {"role": "system", "content": SYSTEM},
         {"role": "user", "content": f"Sources:\n{context}\n\nQuestion: {question}"},

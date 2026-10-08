@@ -125,7 +125,7 @@ async def chat(db: Session, user: User, agent_key: str, message: str, execution_
         raise HTTPException(409, f"The {agent.name} agent is switched off")
     if llm is None:
         try:
-            provider = ai_registry.get_llm(db)
+            provider = ai_registry.get_llm(db, "agents")
             llm = provider.chat_model()
         except ai_registry.NotConfigured:
             raise HTTPException(409, "Set up an AI model in Settings > AI providers first.")

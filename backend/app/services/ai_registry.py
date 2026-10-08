@@ -27,8 +27,23 @@ def _dec(v: str | None) -> str | None:
     return decrypt_secret(v) if v else None
 
 
+# Jobs an admin can send to a different model. Embeddings stay fixed (the vector size is part of the schema).
+ROUTED_TASKS = {
+    "qa": "Matter Q&A",
+    "summary": "Daily briefing",
+    "comparison": "Case comparison",
+    "agents": "AI agents (needs tool calling)",
+}
+
+
 def get_llm(db: Session, task: str = "chat") -> LLMProvider:
-    provider, model = _route(db, task)
+    """Model routed to `task`, or the default chat model when the task has no route of its own."""
+    try:
+        provider, model = _route(db, task)
+    except NotConfigured:
+        if task == "chat":
+            raise
+        provider, model = _route(db, "chat")
     if provider.kind not in OPENAI_LIKE:
         raise NotConfigured(f"Provider kind '{provider.kind}' is not implemented yet")
     return OpenAICompatibleLLM(provider.base_url, _dec(provider.api_key_encrypted), model.model_name)
@@ -88,4 +103,38 @@ def save_config(db: Session, cfg: AIConfigIn) -> None:
             else:
                 db.add(AIModelRoute(task=task, model_id=model.id))
         model.provider_id, model.model_name = provider.id, name
+    db.commit()
+
+
+def read_routes(db: Session) -> list[dict]:
+    _, default = _route(db, "chat")
+    out = []
+    for task, label in ROUTED_TASKS.items():
+        route = db.scalar(select(AIModelRoute).where(AIModelRoute.task == task))
+        model = db.get(AIModel, route.model_id) if route else None
+        out.append({"task": task, "label": label, "model": model.model_name if model else None,
+                    "default_model": default.model_name})
+    return out
+
+
+def save_route(db: Session, task: str, model_name: str | None) -> None:
+    """Point a job at a model on the configured provider; an empty name goes back to the default chat model."""
+    provider, default = _route(db, "chat")
+    route = db.scalar(select(AIModelRoute).where(AIModelRoute.task == task))
+    model_name = (model_name or "").strip()
+    if not model_name or model_name == default.model_name:  # same as default: just follow the default
+        if route:
+            db.delete(route)
+        db.commit()
+        return
+    model = db.scalar(select(AIModel).where(AIModel.provider_id == provider.id, AIModel.model_name == model_name,
+                                            AIModel.capability == "chat"))
+    if not model:
+        model = AIModel(provider_id=provider.id, model_name=model_name, capability="chat")
+        db.add(model)
+        db.flush()
+    if route:
+        route.model_id = model.id
+    else:
+        db.add(AIModelRoute(task=task, model_id=model.id))
     db.commit()

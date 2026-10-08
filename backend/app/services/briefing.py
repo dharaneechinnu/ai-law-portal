@@ -70,7 +70,7 @@ async def generate(db: Session, user: User) -> Briefing:
     facts = collect_facts(db, user)
     summary, source = facts_summary(facts, user.timezone), "facts"
     try:
-        llm = ai_registry.get_llm(db)
+        llm = ai_registry.get_llm(db, "summary")
         text = (await llm.complete([{"role": "system", "content": PROMPT},
                                      {"role": "user", "content": json.dumps(facts, default=str)}])).strip()
         if text:
