@@ -128,7 +128,10 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Secrets stay backend-only.
 - [x] **Settings: agents & permissions UI** — Per-action policy editor, overrides, kill switch, agent settings.
       Settings > AI agents (admin): kill switch, agent on/off and mode, per-action rule, temporary overrides.
-- [ ] **Settings: notifications, retention, API keys** — Daily briefing, reminders, legal alert thresholds, data retention, API keys.
+- [~] **Settings: notifications, retention, API keys** — Daily briefing, reminders, legal alert thresholds, data retention, API keys.
+      Built: `services/firm_settings.py` + `/api/settings/firm` (alert threshold, hearing/meeting/task reminder lead times, approval
+      expiry; range-checked, audited) and Settings > Notifications. Per-user briefing time stays on Account. Not built: data
+      retention and API keys (need decisions: what to purge and when; what the keys are for).
 - [x] **Audit log** — Immutable record of user, agent, action, resource, policy decision, approval, result, provider.
       Searchable in Settings → Security and per matter.
       Recording (`services/audit.py`) of every agent request, decision, approval and policy/override/kill-switch change; Postgres trigger makes `audit_logs` append-only. `/api/audit` (admin search by action, actor, decision, date) and `/api/audit/matters/{id}`; Settings > Audit log and the matter AI Activity tab.
