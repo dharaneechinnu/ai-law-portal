@@ -12,6 +12,7 @@ export interface User {
   notification_prefs: Record<string, boolean>;
   daily_briefing_time?: string | null;
   ai_prefs: Record<string, string>;
+  dashboard_layout?: { widgets?: { id: string; size: "half" | "full"; hidden: boolean }[] };
   firm_name?: string | null;
 }
 
@@ -190,4 +191,22 @@ export interface LegalMatch {
   comparison?: Comparison | null;
   judgment: Judgment;
   detected_at: string;
+}
+
+export interface DashItem {
+  kind: "hearing" | "task";
+  id: string;
+  title: string;
+  at?: string | null;
+  matter_id?: string | null;
+  matter_title?: string | null;
+  priority?: string | null;
+}
+
+export interface Dashboard {
+  stats: { open_matters: number; overdue_tasks: number; hearings_week: number; new_alerts: number };
+  today: DashItem[];
+  overdue: DashItem[];
+  alerts: { id: string; matter_id: string; matter_title: string; title?: string | null; relevance: number }[];
+  matters: { id: string; title: string; matter_number: string; priority: string; next_hearing?: string | null }[];
 }

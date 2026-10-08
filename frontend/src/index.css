@@ -38,6 +38,7 @@
   --animate-shake: shake 0.45s ease-in-out;
   --animate-pop: pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
   --animate-draw: draw 1.2s ease-out both;
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 
   @keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-12px) } }
   @keyframes sway { 0%, 100% { transform: rotate(-3deg) } 50% { transform: rotate(3deg) } }
@@ -57,6 +58,7 @@
     60% { transform: translateX(-5px) } 80% { transform: translateX(3px) }
   }
   @keyframes pop { from { opacity: 0; transform: scale(0.6) } to { opacity: 1; transform: scale(1) } }
+  @keyframes slide-up { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
   @keyframes draw { from { stroke-dashoffset: 60 } to { stroke-dashoffset: 0 } }
 }
 
@@ -74,4 +76,8 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
