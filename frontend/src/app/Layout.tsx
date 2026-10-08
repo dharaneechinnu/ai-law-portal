@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/features/auth/AuthContext";
 import { initials } from "@/features/admin/roles";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
+import { AssistantPanel } from "@/features/ai/AssistantPanel";
 
 const nav = [
   ["/", "Dashboard", LayoutDashboard],
@@ -82,6 +83,7 @@ export function Layout() {
       <main className="min-w-0 flex-1 p-8">
         <Outlet />
       </main>
+      <AssistantPanel />
     </div>
   );
 }

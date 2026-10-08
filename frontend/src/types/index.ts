@@ -357,3 +357,7 @@ export interface ActionResult {
   approval_id?: string | null;
   result?: Record<string, unknown> | null;
 }
+
+export interface ChatStep { action: string; label: string; status: string; reason: string; approval_id?: string | null }
+
+export interface ChatReply { execution_id: string; agent_key: string; reply: string; steps: ChatStep[] }
