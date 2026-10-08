@@ -120,11 +120,13 @@ function CreateUserPanel({ open, onClose, onCreated }: { open: boolean; onClose:
           </div>
           {result.invite_token ? (
             <div className="space-y-2">
-              <div className="text-sm font-medium text-ink-800">Send this invite link</div>
+              <div className="text-sm font-medium text-ink-800">
+                {result.emailed ? `Invite emailed to ${result.user.email}` : "Send this invite link"}
+              </div>
               <CopyField value={inviteUrl(result.invite_token)} />
               <p className="text-xs text-ink-400">
                 Works once and expires in 7 days. It is shown only now; you can generate a new one from the user's menu.
-                Email delivery arrives with the email integration.
+                {!result.emailed && " It was not emailed, so share it yourself."}
               </p>
             </div>
           ) : (
@@ -200,7 +202,11 @@ export function AdminUsersPage() {
   });
   const reinvite = useMutation({
     mutationFn: (id: string) => api<AdminUserCreated>(`/admin/users/${id}/invite`, { method: "POST" }),
-    onSuccess: (r) => { refresh(); setLink({ name: r.user.name, url: inviteUrl(r.invite_token!) }); },
+    onSuccess: (r) => {
+      refresh();
+      setLink({ name: r.user.name, url: inviteUrl(r.invite_token!) });
+      if (r.emailed) toast.push(`New link emailed to ${r.user.name}`);
+    },
     onError: (e) => toast.push(errorMessage(e), "err"),
   });
 

@@ -115,6 +115,17 @@ export interface AdminUser {
 export interface AdminUserCreated {
   user: AdminUser;
   invite_token: string | null;
+  emailed?: boolean;
+}
+
+export interface EmailConfig {
+  configured: boolean;
+  host?: string | null;
+  port?: number | null;
+  security: "starttls" | "ssl" | "none";
+  username?: string | null;
+  sender?: string | null;
+  has_password: boolean;
 }
 
 export interface InviteInfo {
