@@ -8,6 +8,7 @@ Rules:
 """
 import uuid
 
+from fastapi import HTTPException
 from sqlalchemy import ColumnElement, or_, select, true
 from sqlalchemy.orm import Session
 
@@ -40,6 +41,14 @@ def visible_matter_ids(user: User):
 
 def can_view(db: Session, user: User, matter_id: uuid.UUID) -> bool:
     return db.scalar(select(Matter.id).where(Matter.id == matter_id, visible_matters(user))) is not None
+
+
+def matter_or_404(db: Session, matter_id: uuid.UUID, user: User) -> Matter:
+    """Matters the user may not see are reported as not found, so their existence is not leaked."""
+    matter = db.scalar(select(Matter).where(Matter.id == matter_id, visible_matters(user)))
+    if not matter:
+        raise HTTPException(404, "Matter not found")
+    return matter
 
 
 def can_manage(db: Session, user: User, matter: Matter) -> bool:

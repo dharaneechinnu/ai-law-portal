@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session
 from app.models import CalendarEvent, Hearing, Matter, User
 from app.providers.base import CalendarProvider
 from app.providers.local_calendar import LocalCalendarProvider
-from app.schemas import CalItemOut
-from app.services.access import visible_matter_ids
+from app.schemas import CalItemOut, EventIn
+from app.services.access import matter_or_404, visible_matter_ids
+from app.services.notifications import notify
 
 HEARING_LENGTH = timedelta(hours=1)  # display length only; hearings store a start time
 
@@ -56,6 +57,20 @@ def refresh_next_hearing(db: Session, matter_id: uuid.UUID) -> None:
                                                Hearing.scheduled_at >= datetime.now(timezone.utc))
             .order_by(Hearing.scheduled_at).limit(1)
         )
+
+
+async def create_event(db: Session, user: User, body: EventIn) -> CalItemOut:
+    check_times(body.start, body.end)
+    if body.matter_id:
+        matter_or_404(db, body.matter_id, user)
+    attendees = [a for a in check_people(db, body.attendee_ids) if a != str(user.id)]
+    event_id = await get_calendar_provider(db).create_event(
+        str(user.id), body.title, body.start, body.end, location=body.location, matter_id=body.matter_id,
+        attendee_ids=attendees)
+    for uid in attendees:
+        notify(db, uuid.UUID(uid), "meeting", f"Invited: {body.title}", body=f"From {user.name}", link="/calendar",
+               dedupe_key=f"event:{event_id}:invite:{uid}")
+    return next(i for i in items_between(db, user, body.start, body.end) if str(i.id) == event_id)
 
 
 def items_between(db: Session, user: User, start: datetime, end: datetime) -> list[CalItemOut]:

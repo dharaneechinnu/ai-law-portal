@@ -6,8 +6,13 @@ from sqlalchemy import ColumnElement, and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import Matter, Task, TaskDependency, User
-from app.schemas import TaskOut
-from app.services.access import visible_matter_ids
+from app.schemas import TaskIn, TaskOut
+from app.services.access import matter_or_404, visible_matter_ids
+from app.services.matters import add_timeline
+from app.services.notifications import notify
+
+STATUS_EVENTS = {"done": ("task_done", "Task done"), "archived": ("task_archived", "Task archived"),
+                 "open": ("task_reopened", "Task reopened")}
 
 
 def visible_tasks(user: User) -> ColumnElement[bool]:
@@ -69,6 +74,38 @@ def open_dependencies(db: Session, task_id: uuid.UUID) -> int:
         select(Task.id).join(TaskDependency, TaskDependency.depends_on_id == Task.id)
         .where(TaskDependency.task_id == task_id, Task.status == "open")
     ).all())
+
+
+def notify_assignee(db: Session, task: Task, actor: User) -> None:
+    if task.assignee_id and task.assignee_id != actor.id:
+        notify(db, task.assignee_id, "task", f"Assigned to you: {task.title}", body=f"From {actor.name}",
+               link=f"/matters/{task.matter_id}" if task.matter_id else "/tasks",
+               dedupe_key=f"task:{task.id}:assigned:{task.assignee_id}")
+
+
+def create_task(db: Session, user: User, body: TaskIn) -> Task:
+    if body.matter_id:
+        matter_or_404(db, body.matter_id, user)
+    check_assignee(db, body.assignee_id)
+    task = Task(**body.model_dump(exclude={"depends_on"}), created_by_id=user.id)
+    db.add(task)
+    db.flush()
+    set_dependencies(db, task, body.depends_on, user)
+    if task.matter_id:
+        add_timeline(db, task.matter_id, "task_created", f"Task added: {task.title}", user.id, {"task_id": str(task.id)})
+    notify_assignee(db, task, user)
+    return task
+
+
+def change_status(db: Session, user: User, task: Task, new_status: str) -> None:
+    if new_status == task.status:
+        return
+    if new_status == "done" and open_dependencies(db, task.id):
+        raise HTTPException(409, "Finish the tasks this depends on first")
+    task.status = new_status
+    if task.matter_id:
+        event, label = STATUS_EVENTS[new_status]
+        add_timeline(db, task.matter_id, event, f"{label}: {task.title}", user.id, {"task_id": str(task.id)})
 
 
 def to_out(db: Session, tasks: list[Task]) -> list[TaskOut]:

@@ -12,7 +12,8 @@ from app.models import CalendarEvent, Hearing, Matter, User
 from app.schemas import CalItemOut, EventIn, EventUpdate, HearingIn, HearingOut, HearingUpdate
 from app.services.access import visible_matter_ids
 from app.services.calendar import (
-    check_people, check_times, get_calendar_provider, items_between, own_event_or_404, refresh_next_hearing,
+    check_people, check_times, create_event as create_event_svc, get_calendar_provider, items_between,
+    own_event_or_404, refresh_next_hearing,
 )
 from app.services.matters import add_timeline
 from app.services.notifications import notify
@@ -32,18 +33,9 @@ def calendar(start: datetime, end: datetime, db: Session = Depends(get_db), user
 
 @router.post("/events", response_model=CalItemOut, status_code=201)
 async def create_event(body: EventIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    check_times(body.start, body.end)
-    if body.matter_id:
-        get_matter_or_404(db, body.matter_id, user)
-    attendees = [a for a in check_people(db, body.attendee_ids) if a != str(user.id)]
-    event_id = await get_calendar_provider(db).create_event(
-        str(user.id), body.title, body.start, body.end, location=body.location, matter_id=body.matter_id,
-        attendee_ids=attendees)
-    for uid in attendees:
-        notify(db, uuid.UUID(uid), "meeting", f"Invited: {body.title}", body=f"From {user.name}", link="/calendar",
-               dedupe_key=f"event:{event_id}:invite:{uid}")
+    item = await create_event_svc(db, user, body)
     db.commit()
-    return next(i for i in items_between(db, user, body.start, body.end) if str(i.id) == event_id)
+    return item
 
 
 @router.patch("/events/{event_id}", response_model=CalItemOut)
