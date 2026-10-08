@@ -77,8 +77,11 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       No decorative charts. Built: `/api/dashboard` (counts, today, overdue, legal alerts, active matters; filtered by case access) and a
       drag-and-drop dashboard (reorder, resize, hide; layout saved per user in `users.dashboard_layout`). Pending: meetings, follow-ups,
       documents needing action, approvals and briefing cards; task and hearing data appear once those features exist.
-- [ ] **Daily briefing** — Per-user configurable time; a scheduler triggers the Daily Briefing agent and stores the result.
+- [x] **Daily briefing** — Per-user configurable time; a scheduler triggers the Daily Briefing agent and stores the result.
       Time is read from the user's profile, never hard-coded.
+      Built: `briefings` table (one per user per local day), `services/briefing.py` (facts from the dashboard service + calendar;
+      the configured LLM only words a 2–3 sentence summary, plain factual summary otherwise), APScheduler job every minute in
+      `core/scheduler.py` (`SCHEDULER_ENABLED`), `/api/briefing/today` GET/POST, dashboard card. LangGraph agent version is Sprint 4.
 - [ ] **Notifications** — Briefing, meeting/hearing/deadline reminders, overdue, new legal development, approval requests.
       De-duplicated and actionable to avoid spam.
 
