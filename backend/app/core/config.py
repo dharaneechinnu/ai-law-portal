@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     storage_dir: str = "./storage"
     embedding_dim: int = 768
     access_token_minutes: int = 60 * 8
+    scheduler_enabled: bool = True
 
 
 settings = Settings()
