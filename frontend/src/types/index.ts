@@ -308,3 +308,52 @@ export interface AppNotification {
   read_at?: string | null;
   created_at: string;
 }
+
+export type PolicyDecision = "ALLOWED" | "APPROVAL_REQUIRED" | "DISABLED";
+
+export interface AgentInfo { key: string; name: string; enabled: boolean; mode: "suggest" | "approval" | "autonomous" }
+
+export interface ToolInfo {
+  action: string;
+  label: string;
+  description: string;
+  is_mutation: boolean;
+  is_external: boolean;
+  is_destructive: boolean;
+  decision: PolicyDecision;
+}
+
+export interface OverrideInfo {
+  id: string;
+  action: string;
+  agent_key?: string | null;
+  decision: PolicyDecision;
+  expires_at: string;
+  created_by_name?: string | null;
+}
+
+export interface AgentControls { kill_switch: boolean; agents: AgentInfo[]; tools: ToolInfo[]; overrides: OverrideInfo[] }
+
+export interface Approval {
+  id: string;
+  action: string;
+  label: string;
+  agent_key?: string | null;
+  agent_name?: string | null;
+  summary: string;
+  payload: Record<string, unknown>;
+  status: "pending" | "approved" | "rejected" | "expired";
+  requested_for: string;
+  decided_by_name?: string | null;
+  decided_at?: string | null;
+  result?: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface ActionResult {
+  status: "executed" | "pending_approval" | "blocked" | "failed";
+  decision: PolicyDecision;
+  reason: string;
+  approval_id?: string | null;
+  result?: Record<string, unknown> | null;
+}

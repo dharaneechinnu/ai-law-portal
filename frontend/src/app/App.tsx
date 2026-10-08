@@ -11,6 +11,7 @@ import { SetupPage } from "@/features/auth/SetupPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { CalendarPage } from "@/features/calendar/CalendarPage";
 import { PeoplePage } from "@/features/people/PeoplePage";
+import { ApprovalsPage } from "@/features/ai/ApprovalsPage";
 import { TasksPage } from "@/features/tasks/TasksPage";
 import { MatterDetail } from "@/features/matters/MatterDetail";
 import { MattersPage } from "@/features/matters/MattersPage";
@@ -53,6 +54,7 @@ export default function App() {
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/people" element={<PeoplePage />} />
+              <Route path="/approvals" element={<ApprovalsPage />} />
               <Route path="/matters" element={<MattersPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/account" element={<AccountPage />} />

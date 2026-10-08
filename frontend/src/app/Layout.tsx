@@ -1,6 +1,8 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/services/api";
 import {
-  BarChart3, Briefcase, CalendarDays, Gavel, LayoutDashboard, ListChecks, LogOut, Settings, ShieldCheck, UserCircle, Users, Building2,
+  BarChart3, Briefcase, CalendarDays, Gavel, LayoutDashboard, ListChecks, LogOut, Settings, ShieldCheck, Stamp, UserCircle, Users, Building2,
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { cn } from "@/lib/utils";
@@ -16,12 +18,13 @@ const nav = [
   ["/tasks", "Tasks", ListChecks],
   ["/calendar", "Calendar", CalendarDays],
   ["/legal", "Legal Intelligence", Gavel],
+  ["/approvals", "Approvals", Stamp],
   ["/analytics", "Analytics", BarChart3],
   ["/settings", "Settings", Settings],
   ["/account", "Account", UserCircle],
 ] as const;
 
-function Item({ to, label, Icon }: { to: string; label: string; Icon: typeof Users }) {
+function Item({ to, label, Icon, badge = 0 }: { to: string; label: string; Icon: typeof Users; badge?: number }) {
   return (
     <NavLink to={to} end={to === "/"}
       className={({ isActive }) => cn(
@@ -32,6 +35,9 @@ function Item({ to, label, Icon }: { to: string; label: string; Icon: typeof Use
         <>
           <Icon className={cn("size-4 transition-colors", isActive ? "text-brass-300" : "text-ink-300 group-hover:text-brass-200")} />
           {label}
+          {badge > 0 && (
+            <span key={badge} className="ml-auto grid h-5 min-w-5 animate-pop place-items-center rounded-full bg-brass-400 px-1.5 text-[11px] font-semibold tabular-nums text-ink-950">{badge}</span>
+          )}
         </>
       )}
     </NavLink>
@@ -40,12 +46,17 @@ function Item({ to, label, Icon }: { to: string; label: string; Icon: typeof Use
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const { data: pending = 0 } = useQuery({
+    queryKey: ["approvals", "count"],
+    queryFn: () => api<{ pending: number }>("/approvals/count").then((r) => r.pending),
+    refetchInterval: 30_000,
+  });
   return (
     <div className="flex min-h-screen">
       <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-ink-950 px-3 py-5">
         <Logo dark className="mb-8 px-2" />
         <nav className="flex flex-col gap-0.5">
-          {nav.map(([to, label, Icon]) => <Item key={to} to={to} label={label} Icon={Icon} />)}
+          {nav.map(([to, label, Icon]) => <Item key={to} to={to} label={label} Icon={Icon} badge={to === "/approvals" ? pending : 0} />)}
           {user?.role_name === "admin" && (
             <>
               <div className="mb-1 mt-5 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">Admin</div>
