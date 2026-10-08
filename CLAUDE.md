@@ -34,10 +34,11 @@ backend/app/
   providers/         base.py (interfaces), openai_compatible.py
   agents/            empty — LangGraph agents arrive in Sprint 4
   seed.py            python -m app.seed <email> <password> [name]
-backend/alembic/     migrations (versions/ is empty until the first autogenerate)
+backend/alembic/     migrations (initial schema + user invites/last login)
 frontend/src/
   app/               App.tsx (routes), Layout.tsx
-  features/<area>/   auth, matters, settings done; others are .gitkeep stubs
+  features/<area>/   auth (login, register, setup), admin, account, clients, matters, settings done; others are .gitkeep stubs
+  components/brand/  Logo, LegalIllustration (animated SVG) · components/ui/ button, field
   services/api.ts    API client · types/index.ts · routes/Placeholder.tsx for unbuilt pages
 ```
 
@@ -79,12 +80,18 @@ frontend/src/
   agents/permissions UI, notification/retention/API-key settings, audit log, decision-driving analytics only (no decorative charts).
 
 ## 7. Current state (update when it changes; details in TRACKER.md)
-- Sprint 1 code is written and compiles but **not yet verified end to end** against Postgres + an LLM.
-- Built backend: auth (`/login`, `/me` GET/PATCH), clients (list/create/update), matters (list/create/get/patch/timeline),
-  documents (upload/list/reprocess/ask), AI provider settings (get/put/test), health.
-- Built frontend: login, auth context, protected routes, matters list/create, matter detail (Overview, Timeline, Documents,
-  Ask AI), AI settings page. Dashboard/People/Tasks/Legal/Analytics/Account are placeholders; no Clients UI yet.
-- Not yet: generated Alembic migration, account profile, RBAC enforcement on all routers, remaining matter tabs, Sprints 2–5.
+- Sprint 1 is complete and was verified end to end on Postgres 16 + pgvector, with a stub OpenAI-compatible model endpoint
+  (a real LLM is still to be tried).
+- Access: first-run `/setup` creates the firm + first admin; admins create users at **Team & access** (`/admin/users`) via
+  one-time invite links (`/register?token=…`, hashed in DB, 7 days) or temporary passwords. No public self-sign-up.
+- Built backend: auth (`/login`, `/me` GET/PATCH, `/users`, `/setup`, `/invite/{token}`, `/accept-invite`), admin users
+  (list/create/patch/reissue invite), clients, matters (+members, timeline), documents (upload/list/reprocess/ask),
+  AI provider settings, health.
+- Built frontend: animated auth screens, admin panel, account page, clients, matters list/create, 10-tab matter workspace
+  (Tasks/Hearings/Legal Intelligence/Communications/AI Activity are placeholders), AI settings.
+  Dashboard/People/Tasks/Legal/Analytics pages are placeholders.
+- RBAC: admin-only on AI settings and user admin. Not yet: per-matter access control, email delivery of invites,
+  automated tests, Sprints 2–5.
 - Blocked on user: eCourts API details (base URL, auth, endpoints, sample response); choice of first LLM + embedding model;
   confirm pgvector installed.
 

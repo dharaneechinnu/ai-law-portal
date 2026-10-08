@@ -50,7 +50,12 @@ class User(IdMixin, TimestampMixin, Base):
     daily_briefing_time: Mapped[str | None] = mapped_column(String(5))  # "HH:MM" local to user's tz
     ai_prefs: Mapped[dict] = mapped_column(JSON, default=dict)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Invite / access-reset link: only the SHA-256 of the token is stored; the raw token is shown once to the admin.
+    invite_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    invite_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     role: Mapped[Role] = relationship()
+    firm: Mapped[Firm | None] = relationship()
 
 
 class Client(IdMixin, TimestampMixin, Base):

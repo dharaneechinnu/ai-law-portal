@@ -8,6 +8,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   setUser: (u: User) => void;
+  setSession: (token: string, u: User) => void;
 }
 
 const Ctx = createContext<AuthState>(null!);
@@ -34,10 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   };
 
+  const setSession = (token: string, u: User) => {
+    localStorage.setItem("token", token);
+    setUser(u);
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
   };
 
-  return <Ctx.Provider value={{ user, loading, login, logout, setUser }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, login, logout, setUser, setSession }}>{children}</Ctx.Provider>;
 }

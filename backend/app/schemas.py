@@ -30,6 +30,7 @@ class UserOut(ORM):
     notification_prefs: dict = {}
     daily_briefing_time: str | None = None
     ai_prefs: dict = {}
+    firm_name: str | None = None
 
 
 class TokenOut(BaseModel):
@@ -192,3 +193,60 @@ class MemberOut(BaseModel):
     name: str
     email: str
     role: str
+
+
+class SetupStatus(BaseModel):
+    needs_setup: bool
+    firm_name: str | None = None
+
+
+class SetupIn(BaseModel):
+    firm_name: str
+    name: str
+    email: EmailStr
+    password: str
+
+
+class InviteInfo(BaseModel):
+    email: str
+    name: str
+    role_name: str
+    firm_name: str | None = None
+
+
+class AcceptInviteIn(BaseModel):
+    token: str
+    password: str
+    name: str | None = None
+
+
+class AdminUserOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    email: str
+    role_name: str
+    designation: str | None = None
+    status: str  # active / invited / disabled
+    invite_expires_at: datetime | None = None
+    last_login_at: datetime | None = None
+    created_at: datetime
+
+
+class AdminUserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    role: str = "lawyer"
+    designation: str | None = None
+    password: str | None = None  # omit to send an invite link instead
+
+
+class AdminUserUpdate(BaseModel):
+    name: str | None = None
+    role: str | None = None
+    designation: str | None = None
+    is_active: bool | None = None
+
+
+class AdminUserCreated(BaseModel):
+    user: AdminUserOut
+    invite_token: str | None = None  # shown once; the frontend turns it into /register?token=...

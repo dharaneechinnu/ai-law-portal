@@ -3,18 +3,15 @@ import sys
 
 from sqlalchemy import select
 
-from app.api.deps import ROLES
 from app.core.db import SessionLocal
 from app.core.security import hash_password
 from app.models import Firm, Role, User
+from app.services.users import ensure_roles
 
 
 def seed(email: str, password: str, name: str) -> None:
     with SessionLocal() as db:
-        for r in ROLES:
-            if not db.scalar(select(Role).where(Role.name == r)):
-                db.add(Role(name=r))
-        db.flush()
+        ensure_roles(db)
         firm = db.scalar(select(Firm)) or Firm(name="My Law Firm")
         db.add(firm)
         db.flush()

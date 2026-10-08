@@ -1,5 +1,77 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+
+  /* Brand: deep legal navy + brass accent */
+  --color-ink-50: #f3f5fb;
+  --color-ink-100: #e4e8f4;
+  --color-ink-200: #c5cde6;
+  --color-ink-300: #97a5cf;
+  --color-ink-400: #6377b0;
+  --color-ink-500: #3f5494;
+  --color-ink-600: #2c3f7a;
+  --color-ink-700: #1f2f63;
+  --color-ink-800: #15224b;
+  --color-ink-900: #0c1633;
+  --color-ink-950: #070d20;
+  --color-brass-100: #f8efd6;
+  --color-brass-200: #f0dcaa;
+  --color-brass-300: #e6c77a;
+  --color-brass-400: #d9b157;
+  --color-brass-500: #c79a3c;
+  --color-brass-600: #a57c2b;
+  --color-brass-700: #7f5e22;
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float 10s ease-in-out infinite;
+  --animate-sway: sway 6s ease-in-out infinite;
+  --animate-twinkle: twinkle 2.6s ease-in-out infinite;
+  --animate-dash: dash 3s linear infinite;
+  --animate-scan: scan 3.2s ease-in-out infinite;
+  --animate-spin-slow: spin 40s linear infinite;
+  --animate-drift: drift 18s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade-in: fade-in 0.5s ease-out both;
+  --animate-slide-in: slide-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-shake: shake 0.45s ease-in-out;
+  --animate-pop: pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  --animate-draw: draw 1.2s ease-out both;
+
+  @keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-12px) } }
+  @keyframes sway { 0%, 100% { transform: rotate(-3deg) } 50% { transform: rotate(3deg) } }
+  @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.7) } 50% { opacity: 1; transform: scale(1) } }
+  @keyframes dash { to { stroke-dashoffset: -24 } }
+  @keyframes scan { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(46px) } }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1) }
+    33% { transform: translate(40px, -30px) scale(1.08) }
+    66% { transform: translate(-30px, 25px) scale(0.95) }
+  }
+  @keyframes fade-up { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+  @keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes slide-in { from { transform: translateX(100%) } to { transform: none } }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0) } 20% { transform: translateX(-8px) } 40% { transform: translateX(7px) }
+    60% { transform: translateX(-5px) } 80% { transform: translateX(3px) }
+  }
+  @keyframes pop { from { opacity: 0; transform: scale(0.6) } to { opacity: 1; transform: scale(1) } }
+  @keyframes draw { from { stroke-dashoffset: 60 } to { stroke-dashoffset: 0 } }
+}
+
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-slate-50 font-sans text-slate-900 antialiased;
+}
+
+/* SVG parts rotate around their own box, not the canvas origin. */
+.svg-origin-top { transform-box: fill-box; transform-origin: 50% 0; }
+.svg-origin-center { transform-box: fill-box; transform-origin: 50% 50%; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -16,6 +16,11 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 ## Sprint 1 — Auth + Matter + Document + RAG
 
 - [x] **Auth & sessions** — Email/password login with JWT; `/api/auth/login` and `/me`.
+      Branded, animated sign-in, invite-activation and first-run setup screens (desktop and mobile).
+- [x] **Firm setup & user access (admin)** — First-run `/setup` registers the firm and its first admin (refused once any user exists).
+      Admin "Team & access" panel creates logins (one-time invite link valid 7 days, or temporary password), changes roles,
+      disables/enables access and issues reset links. Admins cannot remove their own admin access; the firm keeps one active admin.
+      Invite tokens are stored hashed. Links are copied by the admin; email delivery waits for the email integration.
       Passwords are hashed server-side.
 - [x] **Account profile** — Name, role, designation, practice area, time zone, working hours, notification prefs, briefing time, AI prefs.
       Editable by the user; role changes are admin-only.

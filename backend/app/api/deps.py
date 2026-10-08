@@ -10,7 +10,7 @@ from app.models import User
 
 bearer = HTTPBearer(auto_error=False)
 
-ROLES = ["admin", "partner", "lawyer", "associate", "paralegal"]
+from app.services.users import ROLES  # noqa: F401  (re-exported)
 
 
 def get_current_user(

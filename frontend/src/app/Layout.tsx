@@ -1,45 +1,71 @@
 import { NavLink, Outlet } from "react-router-dom";
+import {
+  BarChart3, Briefcase, CalendarDays, Gavel, LayoutDashboard, LogOut, Settings, ShieldCheck, UserCircle, Users, Building2,
+} from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/features/auth/AuthContext";
+import { initials } from "@/features/admin/roles";
 
 const nav = [
-  ["/", "Dashboard"],
-  ["/matters", "Matters"],
-  ["/clients", "Clients"],
-  ["/people", "People"],
-  ["/tasks", "Tasks & Calendar"],
-  ["/legal", "Legal Intelligence"],
-  ["/analytics", "Analytics"],
-  ["/settings", "Settings"],
-  ["/account", "Account"],
+  ["/", "Dashboard", LayoutDashboard],
+  ["/matters", "Matters", Briefcase],
+  ["/clients", "Clients", Building2],
+  ["/people", "People", Users],
+  ["/tasks", "Tasks & Calendar", CalendarDays],
+  ["/legal", "Legal Intelligence", Gavel],
+  ["/analytics", "Analytics", BarChart3],
+  ["/settings", "Settings", Settings],
+  ["/account", "Account", UserCircle],
 ] as const;
+
+function Item({ to, label, Icon }: { to: string; label: string; Icon: typeof Users }) {
+  return (
+    <NavLink to={to} end={to === "/"}
+      className={({ isActive }) => cn(
+        "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink-200/80 transition hover:bg-white/5 hover:text-white",
+        isActive && "bg-white/10 text-white shadow-inner",
+      )}>
+      {({ isActive }) => (
+        <>
+          <Icon className={cn("size-4 transition-colors", isActive ? "text-brass-300" : "text-ink-300 group-hover:text-brass-200")} />
+          {label}
+        </>
+      )}
+    </NavLink>
+  );
+}
 
 export function Layout() {
   const { user, logout } = useAuth();
   return (
     <div className="flex min-h-screen">
-      <aside className="w-56 shrink-0 border-r bg-white p-4">
-        <div className="mb-6 text-lg font-semibold">AI Law Portal</div>
-        <nav className="flex flex-col gap-1">
-          {nav.map(([to, label]) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === "/"}
-              className={({ isActive }) =>
-                cn("rounded-md px-3 py-2 text-sm hover:bg-slate-100", isActive && "bg-slate-900 text-white hover:bg-slate-900")
-              }
-            >
-              {label}
-            </NavLink>
-          ))}
+      <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-ink-950 px-3 py-5">
+        <Logo dark className="mb-8 px-2" />
+        <nav className="flex flex-col gap-0.5">
+          {nav.map(([to, label, Icon]) => <Item key={to} to={to} label={label} Icon={Icon} />)}
+          {user?.role_name === "admin" && (
+            <>
+              <div className="mb-1 mt-5 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">Admin</div>
+              <Item to="/admin/users" label="Team & access" Icon={ShieldCheck} />
+            </>
+          )}
         </nav>
-        <div className="mt-8 border-t pt-4 text-xs text-slate-500">
-          <div>{user?.name} ({user?.role_name})</div>
-          <button className="mt-1 underline" onClick={logout}>Sign out</button>
+        <div className="mt-auto flex items-center gap-3 rounded-xl bg-white/5 p-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brass-300 to-brass-600 text-xs font-semibold text-ink-950">
+            {initials(user?.name ?? "")}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-white">{user?.name}</div>
+            <div className="truncate text-xs capitalize text-ink-300">{user?.role_name}</div>
+          </div>
+          <button onClick={logout} aria-label="Sign out" title="Sign out"
+            className="grid size-8 place-items-center rounded-lg text-ink-300 hover:bg-white/10 hover:text-white">
+            <LogOut className="size-4" />
+          </button>
         </div>
       </aside>
-      <main className="flex-1 p-8">
+      <main className="min-w-0 flex-1 p-8">
         <Outlet />
       </main>
     </div>

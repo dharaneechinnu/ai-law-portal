@@ -46,7 +46,7 @@ Create the schema (the initial migration is in the repo; it also enables the pgv
 alembic upgrade head
 ```
 
-Seed roles and the first admin user:
+The first admin is created in the browser on first run (see **First use**). For scripted setups you can seed instead:
 ```powershell
 python -m app.seed admin@firm.com "YourPassword" "Admin Name"
 ```
@@ -67,9 +67,13 @@ Vite proxies `/api` to `http://localhost:8000`. To point elsewhere, create `fron
 with `VITE_API_URL=http://localhost:8000`.
 
 ## 4. First use
-1. Open http://localhost:5173 and sign in with the admin you seeded.
-2. Go to **Settings** and enter the LLM / embedding provider (base URL, model, API key), then use Test.
-3. Create a client and a matter under **Matters**, upload a PDF/DOCX/TXT in the Documents tab,
+1. Open http://localhost:5173. On an empty database you are taken to **Register your firm**: enter the firm name and
+   create the admin account. (If you seeded an admin, just sign in.)
+2. Open **Team & access** (admin only) and add your lawyers and staff. Each gets a one-time invite link (valid 7 days)
+   to set their own password at `/register`, or you can give a temporary password. Roles, disabling access and reset
+   links are managed from the same screen. Links are copied and sent by the admin; email delivery comes with the email integration.
+3. Go to **Settings** and enter the LLM / embedding provider (base URL, model, API key), then use Test.
+4. Create a client and a matter under **Matters**, upload a PDF/DOCX/TXT in the Documents tab,
    then ask questions in the **Ask AI** tab.
 
 ## Configuration
