@@ -361,3 +361,21 @@ export interface ActionResult {
 export interface ChatStep { action: string; label: string; status: string; reason: string; approval_id?: string | null }
 
 export interface ChatReply { execution_id: string; agent_key: string; reply: string; steps: ChatStep[] }
+
+export interface AuditEntry {
+  id: string;
+  occurred_at: string;
+  action: string;
+  user_name?: string | null;
+  agent_key?: string | null;
+  agent_name?: string | null;
+  matter_id?: string | null;
+  matter_title?: string | null;
+  resource_type?: string | null;
+  resource_id?: string | null;
+  policy_decision?: string | null;
+  approved?: boolean | null;
+  approved_by_name?: string | null;
+  executed?: boolean | null;
+  result: Record<string, unknown>;
+}

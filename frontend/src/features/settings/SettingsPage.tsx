@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { AgentSettings } from "@/features/ai/AgentSettings";
+import { AuditLog } from "@/features/ai/AuditLog";
 import { useAuth } from "@/features/auth/AuthContext";
 import { cn } from "@/lib/utils";
 import { AISettingsPage } from "./AISettingsPage";
 import { LegalSettings } from "./LegalSettings";
 
-const TABS = [["ai", "AI providers"], ["legal", "Legal data"], ["agents", "AI agents"]] as const;
+const TABS = [["ai", "AI providers"], ["legal", "Legal data"], ["agents", "AI agents"], ["audit", "Audit log"]] as const;
+const ADMIN_TABS = new Set<string>(["agents", "audit"]);
 type Tab = (typeof TABS)[number][0];
 
 export function SettingsPage() {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("ai");
-  const tabs = TABS.filter(([k]) => k !== "agents" || user?.role_name === "admin");
+  const tabs = TABS.filter(([k]) => !ADMIN_TABS.has(k) || user?.role_name === "admin");
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="mb-4 animate-fade-up font-serif text-3xl text-ink-900">Settings</h1>
@@ -28,6 +30,7 @@ export function SettingsPage() {
         {tab === "ai" && <AISettingsPage />}
         {tab === "legal" && <LegalSettings />}
         {tab === "agents" && <AgentSettings />}
+        {tab === "audit" && <AuditLog />}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { api, errorMessage } from "@/services/api";
 import type { AskResult, DocumentRow, Matter, Member, TimelineEvent, UserBrief } from "@/types";
+import { AuditLog } from "@/features/ai/AuditLog";
 import { HearingsTab } from "@/features/calendar/HearingsTab";
 import { TaskList } from "@/features/tasks/TaskList";
 import { MatterLegalTab } from "@/features/legal-intelligence/LegalPage";
@@ -18,7 +19,6 @@ type Tab = (typeof TABS)[number];
 // Tabs whose backing feature lands in a later sprint.
 const LATER: Partial<Record<Tab, [string, string]>> = {
   Communications: ["Sprint 3", "Emails and meeting notes tied to this matter."],
-  "AI Activity": ["Sprint 4", "Agent actions, approvals and policy decisions for this matter."],
 };
 
 const input = "rounded-md border px-3 py-2 text-sm";
@@ -271,6 +271,7 @@ export function MatterDetail() {
       {tab === "Legal Intelligence" && <MatterLegalTab id={id} />}
       {tab === "Tasks" && <TaskList matterId={id} />}
       {tab === "Hearings" && <HearingsTab matterId={id} />}
+      {tab === "AI Activity" && <AuditLog matterId={id} />}
       {LATER[tab] && <Later tab={tab} />}
     </div>
   );
