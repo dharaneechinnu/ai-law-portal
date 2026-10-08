@@ -84,7 +84,7 @@ with `VITE_API_URL=http://localhost:8000`.
 ## Run the tests
 ```powershell
 cd backend
-.venv\Scriptsctivate
+.venv\Scripts\activate
 pip install -r requirements-dev.txt   # first time only
 pytest
 ```
