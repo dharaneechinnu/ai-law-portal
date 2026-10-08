@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from app.core.db import SessionLocal
 from app.models import User
-from app.services import briefing
+from app.services import briefing, notifications
 
 log = logging.getLogger(__name__)
 scheduler = AsyncIOScheduler()
@@ -19,14 +19,28 @@ async def run_due_briefings() -> None:
         for user in users:
             if briefing.due_now(user) and not briefing.today_for(db, user):
                 try:
-                    await briefing.generate(db, user)
+                    b = await briefing.generate(db, user)
+                    notifications.notify(db, user.id, "briefing", "Your daily briefing is ready", body=b.summary[:200],
+                                         link="/", dedupe_key=f"briefing:{b.for_date.isoformat()}")
+                    db.commit()
                 except Exception:
                     db.rollback()
                     log.exception("Daily briefing failed for user %s", user.id)
 
 
+def run_reminders() -> None:
+    with SessionLocal() as db:
+        try:
+            notifications.send_reminders(db)
+        except Exception:
+            db.rollback()
+            log.exception("Reminder run failed")
+
+
 def start() -> None:
     scheduler.add_job(run_due_briefings, "cron", minute="*", id="daily_briefings", replace_existing=True,
+                      max_instances=1, coalesce=True)
+    scheduler.add_job(run_reminders, "cron", minute="*/5", id="reminders", replace_existing=True,
                       max_instances=1, coalesce=True)
     scheduler.start()
 
