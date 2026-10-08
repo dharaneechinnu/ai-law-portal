@@ -399,3 +399,11 @@ export interface Analytics {
 }
 
 export interface ModelRoute { task: string; label: string; model?: string | null; default_model: string }
+
+export interface FirmSettingsData {
+  legal_alert_threshold: number;
+  hearing_reminder_hours: number;
+  meeting_reminder_minutes: number;
+  task_due_reminder_hours: number;
+  approval_expiry_days: number;
+}

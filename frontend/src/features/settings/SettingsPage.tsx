@@ -5,10 +5,11 @@ import { useAuth } from "@/features/auth/AuthContext";
 import { cn } from "@/lib/utils";
 import { AISettingsPage } from "./AISettingsPage";
 import { LegalSettings } from "./LegalSettings";
+import { FirmSettings } from "./FirmSettings";
 import { ModelRoutes } from "./ModelRoutes";
 
-const TABS = [["ai", "AI providers"], ["legal", "Legal data"], ["agents", "AI agents"], ["audit", "Audit log"]] as const;
-const ADMIN_TABS = new Set<string>(["agents", "audit"]);
+const TABS = [["ai", "AI providers"], ["legal", "Legal data"], ["agents", "AI agents"], ["notify", "Notifications"], ["audit", "Audit log"]] as const;
+const ADMIN_TABS = new Set<string>(["agents", "notify", "audit"]);
 type Tab = (typeof TABS)[number][0];
 
 export function SettingsPage() {
@@ -31,6 +32,7 @@ export function SettingsPage() {
         {tab === "ai" && <><AISettingsPage /><ModelRoutes /></>}
         {tab === "legal" && <LegalSettings />}
         {tab === "agents" && <AgentSettings />}
+        {tab === "notify" && <FirmSettings />}
         {tab === "audit" && <AuditLog />}
       </div>
     </div>
