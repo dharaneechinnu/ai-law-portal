@@ -8,6 +8,7 @@ import { ClientsPage } from "@/features/clients/ClientsPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { RegisterPage } from "@/features/auth/RegisterPage";
 import { SetupPage } from "@/features/auth/SetupPage";
+import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { MatterDetail } from "@/features/matters/MatterDetail";
 import { MattersPage } from "@/features/matters/MattersPage";
 import { LegalPage } from "@/features/legal-intelligence/LegalPage";
@@ -17,7 +18,6 @@ import { Placeholder } from "@/routes/Placeholder";
 const queryClient = new QueryClient();
 
 const pages: [string, string, string][] = [
-  ["/", "Dashboard", "Action center: today's work and AI alerts (Sprint 3)."],
   ["/people", "People", "Lawyers, workload and availability (Sprint 3)."],
   ["/tasks", "Tasks & Calendar", "Tasks, hearings, meetings (Sprint 3)."],
   ["/analytics", "Analytics", "Firm, legal and AI analytics (Sprint 5)."],
@@ -48,6 +48,7 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/setup" element={<SetupPage />} />
             <Route element={<Protected />}>
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/matters" element={<MattersPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/account" element={<AccountPage />} />
