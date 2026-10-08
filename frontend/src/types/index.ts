@@ -397,3 +397,5 @@ export interface Analytics {
     conversations: number; top_actions: Bar[]; by_agent: Bar[]; models: Bar[];
   };
 }
+
+export interface ModelRoute { task: string; label: string; model?: string | null; default_model: string }

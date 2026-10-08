@@ -5,6 +5,7 @@ import { useAuth } from "@/features/auth/AuthContext";
 import { cn } from "@/lib/utils";
 import { AISettingsPage } from "./AISettingsPage";
 import { LegalSettings } from "./LegalSettings";
+import { ModelRoutes } from "./ModelRoutes";
 
 const TABS = [["ai", "AI providers"], ["legal", "Legal data"], ["agents", "AI agents"], ["audit", "Audit log"]] as const;
 const ADMIN_TABS = new Set<string>(["agents", "audit"]);
@@ -27,7 +28,7 @@ export function SettingsPage() {
         ))}
       </div>
       <div key={tab} className="animate-fade-up">
-        {tab === "ai" && <AISettingsPage />}
+        {tab === "ai" && <><AISettingsPage /><ModelRoutes /></>}
         {tab === "legal" && <LegalSettings />}
         {tab === "agents" && <AgentSettings />}
         {tab === "audit" && <AuditLog />}

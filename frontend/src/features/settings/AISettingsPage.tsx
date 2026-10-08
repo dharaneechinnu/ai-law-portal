@@ -22,7 +22,7 @@ export function AISettingsPage() {
 
   const save = useMutation({
     mutationFn: () => api("/settings/ai", { method: "PUT", body: JSON.stringify(f) }),
-    onSuccess: () => { setF((p) => ({ ...p, api_key: "", embedding_api_key: "" })); qc.invalidateQueries({ queryKey: ["ai-config"] }); },
+    onSuccess: () => { setF((p) => ({ ...p, api_key: "", embedding_api_key: "" })); qc.invalidateQueries({ queryKey: ["ai-config"] }); qc.invalidateQueries({ queryKey: ["ai-routes"] }); },
   });
   const test = useMutation({ mutationFn: () => api<{ embedding_dim: number }>("/settings/ai/test", { method: "POST" }) });
 
