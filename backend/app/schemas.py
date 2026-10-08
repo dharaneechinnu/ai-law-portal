@@ -250,3 +250,88 @@ class AdminUserUpdate(BaseModel):
 class AdminUserCreated(BaseModel):
     user: AdminUserOut
     invite_token: str | None = None  # shown once; the frontend turns it into /register?token=...
+
+
+# ---------- Legal data / Legal Intelligence (Sprint 2) ----------
+
+class LegalSourceIn(BaseModel):
+    base_url: str | None = None
+    api_key: str | None = None  # write-only; omit to keep the stored key
+    config: dict = {}  # auth style, endpoint templates, field mapping (see providers/ecourts.py)
+    enabled: bool = True
+
+
+class LegalSourceOut(BaseModel):
+    configured: bool
+    provider: str = "ecourts"
+    base_url: str | None = None
+    has_api_key: bool = False
+    config: dict = {}
+    enabled: bool = False
+    last_synced_at: datetime | None = None
+
+
+class LegalSyncIn(BaseModel):
+    mode: str = "judgments"  # judgments (by filters) / case (one case + its orders)
+    filters: dict = {}  # values for the endpoint's {placeholders}, e.g. {"from_date": "2026-01-01"}
+    external_case_id: str | None = None
+
+
+class LegalSyncOut(BaseModel):
+    fetched: int
+    new: int
+    updated: int
+    matches: int
+    alerts: int
+    embedded: bool  # False when no embedding model is configured (semantic signal skipped)
+
+
+class LegalCaseOut(BaseModel):
+    external_case_id: str
+    case_number: str | None = None
+    title: str | None = None
+    case_type: str | None = None
+    status: str | None = None
+    filing_date: date | None = None
+    court: dict | None = None
+    parties: list[dict] = []
+    source_url: str | None = None
+
+
+class JudgmentOut(ORM):
+    id: uuid.UUID
+    kind: str
+    external_judgment_id: str
+    title: str | None
+    judgment_date: date | None
+    court_name: str | None = None
+    summary: str | None
+    provisions: list
+    bench: list
+    outcome: str | None
+    source_url: str | None
+
+
+class MatchOut(BaseModel):
+    id: uuid.UUID
+    matter_id: uuid.UUID
+    matter_title: str
+    matter_number: str
+    relevance: float
+    signals: dict
+    status: str
+    is_alert: bool
+    comparison: dict | None
+    judgment: JudgmentOut
+    detected_at: datetime
+
+
+class MatchStatusIn(BaseModel):
+    status: str  # new/reviewed/dismissed
+
+    @field_validator("status")
+    @classmethod
+    def valid_status(cls, v):
+        if v not in {"new", "reviewed", "dismissed"}:
+            raise ValueError("Status must be new, reviewed or dismissed")
+        return v

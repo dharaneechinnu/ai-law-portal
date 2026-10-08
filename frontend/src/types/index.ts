@@ -131,3 +131,62 @@ export interface Session {
   access_token: string;
   user: User;
 }
+
+export interface LegalSource {
+  configured: boolean;
+  provider: string;
+  base_url?: string | null;
+  has_api_key: boolean;
+  config: Record<string, unknown>;
+  enabled: boolean;
+  last_synced_at?: string | null;
+}
+
+export interface LegalSyncResult {
+  fetched: number;
+  new: number;
+  updated: number;
+  matches: number;
+  alerts: number;
+  embedded: boolean;
+}
+
+export interface Judgment {
+  id: string;
+  kind: string;
+  external_judgment_id: string;
+  title?: string | null;
+  judgment_date?: string | null;
+  court_name?: string | null;
+  summary?: string | null;
+  provisions: string[];
+  bench: string[];
+  outcome?: string | null;
+  source_url?: string | null;
+}
+
+export interface Comparison {
+  same: string[];
+  different: string[];
+  potential_impact: string;
+  recommended_review: string[];
+  raw?: string | null;
+  label: string;
+  generated_at: string;
+}
+
+export type MatchStatus = "new" | "reviewed" | "dismissed";
+
+export interface LegalMatch {
+  id: string;
+  matter_id: string;
+  matter_title: string;
+  matter_number: string;
+  relevance: number;
+  signals: { signals: Record<string, number | null>; weights: Record<string, number> };
+  status: MatchStatus;
+  is_alert: boolean;
+  comparison?: Comparison | null;
+  judgment: Judgment;
+  detected_at: string;
+}

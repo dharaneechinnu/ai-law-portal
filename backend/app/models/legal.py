@@ -1,10 +1,26 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base, IdMixin, TimestampMixin
+
+
+class LegalDataSource(IdMixin, TimestampMixin, Base):
+    """Legal data integration (e.g. eCourts), configured from Settings. api_key_encrypted never leaves the server.
+
+    `config` holds the user-supplied auth style, endpoint templates and field mapping; nothing about the
+    external API's format is hard-coded outside the adapter.
+    """
+
+    __tablename__ = "legal_data_sources"
+    provider: Mapped[str] = mapped_column(String(50), unique=True)  # ecourts
+    base_url: Mapped[str | None] = mapped_column(String(500))
+    api_key_encrypted: Mapped[str | None] = mapped_column(Text)
+    config: Mapped[dict] = mapped_column(JSON, default=dict)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Court(IdMixin, Base):
@@ -50,6 +66,7 @@ class Judgment(IdMixin, TimestampMixin, Base):
     __tablename__ = "judgments"
     provider: Mapped[str] = mapped_column(String(50))
     external_judgment_id: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(20), default="judgment")  # judgment/order
     legal_case_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("legal_cases.id"))
     court_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("courts.id"))
     title: Mapped[str | None] = mapped_column(String(500))
@@ -79,5 +96,9 @@ class MatterLegalMatch(IdMixin, TimestampMixin, Base):
     relevance: Mapped[float] = mapped_column(Float)  # 0..1
     signals: Mapped[dict] = mapped_column(JSON, default=dict)  # per-signal breakdown => explainable
     comparison: Mapped[dict | None] = mapped_column(JSON)  # same/different/impact/recommended_review
-    status: Mapped[str] = mapped_column(String(20), default="new")
-    __table_args__ = (Index("ix_match_matter_rel", "matter_id", "relevance"),)
+    status: Mapped[str] = mapped_column(String(20), default="new")  # new/reviewed/dismissed
+    reviewed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    __table_args__ = (
+        Index("ix_match_matter_rel", "matter_id", "relevance"),
+        UniqueConstraint("matter_id", "development_id"),
+    )

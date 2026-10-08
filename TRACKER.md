@@ -41,18 +41,19 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 2 — eCourts + Legal Intelligence
 
-- [ ] **eCourts provider adapter** — `ECourtsProvider` implements `LegalDataProvider`; endpoints, auth and field mapping come from user-supplied config.
-      No hard-coded response formats outside the adapter.
-- [ ] **Legal data normalization** — Map external responses into Court, LegalCase, Party, Judgment, Order, Hearing, LegalProvision.
+- [x] **eCourts provider adapter** — `ECourtsProvider` implements `LegalDataProvider` (`providers/ecourts.py`). Base URL, API key, auth style
+      (header + prefix, or query param), endpoint templates and field mapping are all entered in Settings → Legal data; key stored encrypted.
+      No response format is hard-coded. Tested against a local mock only; real eCourts endpoints/mapping still to be entered and tried.
+- [x] **Legal data normalization** — Mapped responses become Court, LegalCase, Party and Judgment (with `kind` judgment/order) rows.
       Stores provider + external IDs + source URL so providers can be swapped.
-- [ ] **Legal data sync** — Manual and scheduled fetch of new cases/orders/judgments, deduplicated by external ID.
-      Each new item gets metadata extraction and embeddings.
-- [ ] **Matter-to-judgment matching** — Multi-signal score: semantic similarity, provision match, court/jurisdiction, case type, facts, recency.
-      Every score stores its per-signal breakdown so it is explainable.
-- [ ] **Case comparison** — "My case vs judgment" report: same, different, potential impact, recommended review.
+- [~] **Legal data sync** — Manual fetch from the Legal Intelligence page (new judgments by filters, or one case + its orders), deduplicated by
+      external ID; new items are chunked and embedded. Scheduled sync not built yet (decision deferred).
+- [x] **Matter-to-judgment matching** — Score from semantic similarity, provisions, facts, court/jurisdiction, case type and recency.
+      Every match stores its per-signal breakdown; missing signals are left out, not guessed.
+- [x] **Case comparison** — "My case vs judgment" report: same, different, potential impact, recommended review.
       Prompted to never predict outcomes; labelled as analysis, not legal advice.
-- [ ] **Legal alerts** — High-relevance matches become `LegalDevelopment` alerts on the dashboard and matter Legal Intelligence tab.
-      Lawyers can mark them reviewed/dismissed.
+- [x] **Legal alerts** — Matches at or above the firm's alert threshold (default 0.6) are alerts on the Legal Intelligence page and the matter's
+      Legal Intelligence tab, and are logged to the matter timeline. Lawyers mark them reviewed/dismissed. Dashboard card waits for Sprint 3.
 
 ## Sprint 3 — Tasks + Calendar + Notifications
 
@@ -105,7 +106,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Open Items / Needs From You
 
-- [ ] eCourts API: base URL, auth method, endpoints, sample response (needed to build the adapter — nothing is invented).
+- [ ] eCourts API: base URL, auth header, endpoint paths and a sample response, to fill in Settings → Legal data (the API key is in hand; nothing is invented).
 - [ ] Confirm the pgvector package is installed on your Postgres server (the initial migration runs `CREATE EXTENSION IF NOT EXISTS vector`).
 - [ ] Choose first LLM + embedding model once the Settings page exists (embedding dimension must be fixed in the schema; default 768).
 

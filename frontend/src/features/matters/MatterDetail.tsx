@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { api } from "@/services/api";
 import type { AskResult, DocumentRow, Matter, Member, TimelineEvent, UserBrief } from "@/types";
+import { MatterLegalTab } from "@/features/legal-intelligence/LegalPage";
 
 const TABS = [
   "Overview", "Documents", "Ask AI", "Timeline", "Team",
@@ -16,7 +17,6 @@ type Tab = (typeof TABS)[number];
 const LATER: Partial<Record<Tab, [string, string]>> = {
   Tasks: ["Sprint 3", "Tasks linked to this matter, with assignees and due dates."],
   Hearings: ["Sprint 3", "Hearings and calendar events for this matter."],
-  "Legal Intelligence": ["Sprint 2", "eCourts developments matched to this matter, with explainable scores."],
   Communications: ["Sprint 3", "Emails and meeting notes tied to this matter."],
   "AI Activity": ["Sprint 4", "Agent actions, approvals and policy decisions for this matter."],
 };
@@ -259,6 +259,7 @@ export function MatterDetail() {
       {tab === "Documents" && <Documents id={id} />}
       {tab === "Ask AI" && <AskAI id={id} />}
       {tab === "Team" && <Team id={id} />}
+      {tab === "Legal Intelligence" && <MatterLegalTab id={id} />}
       {LATER[tab] && <Later tab={tab} />}
     </div>
   );
