@@ -210,3 +210,22 @@ export interface Dashboard {
   alerts: { id: string; matter_id: string; matter_title: string; title?: string | null; relevance: number }[];
   matters: { id: string; title: string; matter_number: string; priority: string; next_hearing?: string | null }[];
 }
+
+export type TaskStatus = "open" | "done" | "archived";
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string | null;
+  matter_id?: string | null;
+  matter_title?: string | null;
+  assignee_id?: string | null;
+  assignee_name?: string | null;
+  due_at?: string | null;
+  priority: string;
+  status: TaskStatus;
+  kind: string;
+  depends_on: string[];
+  blocked: boolean;
+  created_at: string;
+}
