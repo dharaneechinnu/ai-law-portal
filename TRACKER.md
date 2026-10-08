@@ -130,8 +130,11 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Audit log** — Immutable record of user, agent, action, resource, policy decision, approval, result, provider.
       Searchable in Settings → Security and per matter.
       Recording (`services/audit.py`) of every agent request, decision, approval and policy/override/kill-switch change; Postgres trigger makes `audit_logs` append-only. `/api/audit` (admin search by action, actor, decision, date) and `/api/audit/matters/{id}`; Settings > Audit log and the matter AI Activity tab.
-- [ ] **Analytics** — Firm (matters, overdue, hearings, workload, duration), legal intelligence (judgments, high-impact, reviewed), AI (actions, approved/rejected/blocked, model usage).
+- [x] **Analytics** — Firm (matters, overdue, hearings, workload, duration), legal intelligence (judgments, high-impact, reviewed), AI (actions, approved/rejected/blocked, model usage).
       Only metrics that drive decisions.
+      Built: `services/analytics.py` + `/api/analytics?days=7|30|90`, scoped to matters the viewer can open (AI numbers firm-wide for
+      admins, own for others). `/analytics`: firm (overdue, hearings, matter age, workload by person, practice areas), legal
+      (unreviewed and high-impact alerts), AI (ran / asked / blocked, approved / rejected / waiting, top actions, agents, models).
 
 ## Open Items / Needs From You
 
