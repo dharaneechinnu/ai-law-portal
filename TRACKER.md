@@ -68,8 +68,11 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Ships with a local mock provider; Google/Outlook slot in later. `LocalCalendarProvider`, `/api/calendar` (range query,
       create/edit/cancel events; organiser-only edits), `/api/hearings` (list/create/update; keeps `matters.next_hearing` current,
       logs to timeline). `/calendar` week view and the matter Hearings tab. Month/day views not built. Not yet run against a live DB.
-- [ ] **People & availability** — Lawyer list/create/edit/view with practice areas, workload, and free/busy from calendar plus working hours.
+- [x] **People & availability** — Lawyer list/create/edit/view with practice areas, workload, and free/busy from calendar plus working hours.
       Exposed as a service so agents can ask "is X free?".
+      Built: `/people` directory (search, practice-area filter, live free/busy/off status, workload) with profile drawer;
+      `services/people.py` (`is_free`, `busy_slots`, default Mon–Fri 09:00–18:00) and `/api/people/{id}/availability`.
+      Colleagues see "Busy", not meeting titles. Create/edit stays in Team & access. Not yet run against a live DB.
 - [~] **Dashboard action center** — "What do I need to do today": due/overdue tasks, hearings, meetings, follow-ups, docs needing action, AI alerts.
       No decorative charts. Built: `/api/dashboard` (counts, today, overdue, legal alerts, active matters; filtered by case access) and a
       drag-and-drop dashboard (reorder, resize, hide; layout saved per user in `users.dashboard_layout`). Pending: meetings, follow-ups,
