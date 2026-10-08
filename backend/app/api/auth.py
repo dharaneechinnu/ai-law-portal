@@ -20,7 +20,7 @@ def user_out(u: User) -> UserOut:
         practice_areas=u.practice_areas or [], phone=u.phone, office_location=u.office_location,
         timezone=u.timezone, working_hours=u.working_hours or {},
         notification_prefs=u.notification_prefs or {}, daily_briefing_time=u.daily_briefing_time,
-        ai_prefs=u.ai_prefs or {}, firm_name=u.firm.name if u.firm else None,
+        ai_prefs=u.ai_prefs or {}, dashboard_layout=u.dashboard_layout or {}, firm_name=u.firm.name if u.firm else None,
     )
 
 
