@@ -13,6 +13,7 @@ from app.providers.ecourts import NotConfigured
 from app.schemas import (JudgmentOut, LegalCaseOut, LegalSourceIn, LegalSourceOut, LegalSyncIn, LegalSyncOut,
                          MatchOut, MatchStatusIn)
 from app.services import ai_registry, legal_compare, legal_data, legal_sync
+from app.services.access import visible_matters
 from app.services.legal_match import alert_threshold
 from app.services.matters import add_timeline
 
@@ -74,7 +75,7 @@ async def search_cases(q: str, db: Session = Depends(get_db), user: User = Depen
         raise _provider_error(e)
 
 
-def _match_rows(db: Session, *where) -> list[MatchOut]:
+def _match_rows(db: Session, user: User, *where) -> list[MatchOut]:
     threshold = alert_threshold(db)
     rows = db.execute(
         select(MatterLegalMatch, Matter, LegalDevelopment, Judgment, Court)
@@ -82,7 +83,7 @@ def _match_rows(db: Session, *where) -> list[MatchOut]:
         .join(LegalDevelopment, LegalDevelopment.id == MatterLegalMatch.development_id)
         .join(Judgment, Judgment.id == LegalDevelopment.judgment_id)
         .outerjoin(Court, Court.id == Judgment.court_id)
-        .where(*where)
+        .where(visible_matters(user), *where)
         .order_by(MatterLegalMatch.relevance.desc(), LegalDevelopment.detected_at.desc())
         .limit(200)
     ).all()
@@ -101,18 +102,18 @@ def alerts(status: str = "new", db: Session = Depends(get_db), user: User = Depe
     where = [MatterLegalMatch.relevance >= alert_threshold(db)]
     if status != "all":
         where.append(MatterLegalMatch.status == status)
-    return _match_rows(db, *where)
+    return _match_rows(db, user, *where)
 
 
 @router.get("/matters/{matter_id}/matches", response_model=list[MatchOut])
 def matter_matches(matter_id: uuid.UUID, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    get_matter_or_404(db, matter_id)
-    return _match_rows(db, MatterLegalMatch.matter_id == matter_id)
+    get_matter_or_404(db, matter_id, user)
+    return _match_rows(db, user, MatterLegalMatch.matter_id == matter_id)
 
 
-def _match_or_404(db: Session, match_id: uuid.UUID) -> MatterLegalMatch:
+def _match_or_404(db: Session, match_id: uuid.UUID, user: User) -> MatterLegalMatch:
     match = db.get(MatterLegalMatch, match_id)
-    if not match:
+    if not match or not db.scalar(select(Matter.id).where(Matter.id == match.matter_id, visible_matters(user))):
         raise HTTPException(404, "Match not found")
     return match
 
@@ -120,22 +121,22 @@ def _match_or_404(db: Session, match_id: uuid.UUID) -> MatterLegalMatch:
 @router.patch("/matches/{match_id}", response_model=MatchOut)
 def set_match_status(match_id: uuid.UUID, body: MatchStatusIn, db: Session = Depends(get_db),
                      user: User = Depends(get_current_user)):
-    match = _match_or_404(db, match_id)
+    match = _match_or_404(db, match_id, user)
     if match.status != body.status:
         match.status = body.status
         match.reviewed_by = user.id if body.status != "new" else None
         add_timeline(db, match.matter_id, f"legal_match_{body.status}", f"Legal match marked {body.status}", user.id,
                      {"match_id": str(match.id)})
         db.commit()
-    return _match_rows(db, MatterLegalMatch.id == match.id)[0]
+    return _match_rows(db, user, MatterLegalMatch.id == match.id)[0]
 
 
 @router.post("/matches/{match_id}/compare", response_model=MatchOut,
              dependencies=[Depends(require_roles("admin", "partner", "lawyer", "associate"))])
-async def compare_match(match_id: uuid.UUID, db: Session = Depends(get_db)):
-    match = _match_or_404(db, match_id)
+async def compare_match(match_id: uuid.UUID, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    match = _match_or_404(db, match_id, user)
     try:
         await legal_compare.compare(db, match)
     except Exception as e:
         raise _provider_error(e)
-    return _match_rows(db, MatterLegalMatch.id == match.id)[0]
+    return _match_rows(db, user, MatterLegalMatch.id == match.id)[0]

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { api } from "@/services/api";
+import { api, errorMessage } from "@/services/api";
 import type { AskResult, DocumentRow, Matter, Member, TimelineEvent, UserBrief } from "@/types";
 import { MatterLegalTab } from "@/features/legal-intelligence/LegalPage";
 
@@ -34,8 +34,9 @@ function Overview({ m }: { m: Matter }) {
     practice_area: m.practice_area ?? "", status: m.status, priority: m.priority,
     assigned_lawyer_id: m.assigned_lawyer_id ?? "", description: m.description ?? "",
     legal_issues: m.legal_issues.join(", "),
+    restricted: m.restricted,
   });
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+  const set = (k: Exclude<keyof typeof f, "restricted">) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setF({ ...f, [k]: e.target.value });
   const save = useMutation({
     mutationFn: () =>
@@ -74,7 +75,14 @@ function Overview({ m }: { m: Matter }) {
         </div>
         <input className={input} placeholder="Legal issues (comma separated)" value={f.legal_issues} onChange={set("legal_issues")} />
         <textarea className={input} placeholder="Description" value={f.description} onChange={set("description")} />
-        {save.isError && <p className="text-sm text-red-600">{String(save.error)}</p>}
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" className="mt-0.5" checked={f.restricted} onChange={(e) => setF({ ...f, restricted: e.target.checked })} />
+          <span>
+            <span className="font-medium">Restricted</span>
+            <span className="block text-slate-500">Only admins, the assigned lawyer and team members can open this matter.</span>
+          </span>
+        </label>
+        {save.isError && <p className="text-sm text-red-600">{errorMessage(save.error)}</p>}
         <div className="flex gap-2">
           <Button type="submit" disabled={save.isPending}>Save</Button>
           <Button type="button" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
@@ -86,6 +94,7 @@ function Overview({ m }: { m: Matter }) {
     ["Matter ID", m.matter_number], ["Case number", m.case_number], ["Court", m.court],
     ["Jurisdiction", m.jurisdiction], ["Practice area", m.practice_area], ["Priority", m.priority],
     ["Status", m.status], ["Assigned lawyer", lawyer], ["Legal issues", m.legal_issues.join(", ")],
+    ["Access", m.restricted ? "Restricted to team" : "Firm (partners and team)"],
   ];
   return (
     <div className="space-y-4">

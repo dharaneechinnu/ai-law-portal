@@ -94,6 +94,7 @@ class MatterIn(BaseModel):
     next_hearing: datetime | None = None
     description: str | None = None
     legal_issues: list[str] = []
+    restricted: bool = False
 
 
 class MatterUpdate(BaseModel):
@@ -109,6 +110,7 @@ class MatterUpdate(BaseModel):
     next_hearing: datetime | None = None
     description: str | None = None
     legal_issues: list[str] | None = None
+    restricted: bool | None = None
 
 
 class MatterOut(MatterIn, ORM):

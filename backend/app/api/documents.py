@@ -23,14 +23,14 @@ MAX_BYTES = 50 * 1024 * 1024
 
 @router.get("/documents", response_model=list[DocumentOut])
 def list_documents(matter_id: uuid.UUID, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    get_matter_or_404(db, matter_id)
+    get_matter_or_404(db, matter_id, user)
     return db.scalars(select(Document).where(Document.matter_id == matter_id).order_by(Document.created_at.desc())).all()
 
 
 @router.post("/documents", response_model=DocumentOut, status_code=201)
 async def upload_document(matter_id: uuid.UUID, background: BackgroundTasks, file: UploadFile = File(...),
                           db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    get_matter_or_404(db, matter_id)
+    get_matter_or_404(db, matter_id, user)
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in ALLOWED:
         raise HTTPException(400, f"Unsupported file type. Allowed: {', '.join(sorted(ALLOWED))}")
@@ -56,6 +56,7 @@ async def upload_document(matter_id: uuid.UUID, background: BackgroundTasks, fil
 @router.post("/documents/{document_id}/reprocess", response_model=DocumentOut)
 def reprocess(matter_id: uuid.UUID, document_id: uuid.UUID, background: BackgroundTasks,
               db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    get_matter_or_404(db, matter_id, user)
     doc = db.get(Document, document_id)
     if not doc or doc.matter_id != matter_id:
         raise HTTPException(404, "Document not found")
@@ -68,7 +69,7 @@ def reprocess(matter_id: uuid.UUID, document_id: uuid.UUID, background: Backgrou
 @router.post("/ask", response_model=AskOut)
 async def ask(matter_id: uuid.UUID, body: AskIn, db: Session = Depends(get_db),
               user: User = Depends(get_current_user)):
-    get_matter_or_404(db, matter_id)
+    get_matter_or_404(db, matter_id, user)
     try:
         return await rag.ask_matter(db, matter_id, body.question)
     except ai_registry.NotConfigured as e:

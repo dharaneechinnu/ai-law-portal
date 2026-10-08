@@ -26,6 +26,10 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Editable by the user; role changes are admin-only.
 - [x] **RBAC** — Roles: Admin, Partner, Lawyer, Associate, Paralegal; permission checks as FastAPI dependencies.
       Enforced on the server for every router.
+- [x] **Case access control** — Admins see every matter; partners see every matter except restricted ones they are not on;
+      lawyers, associates and paralegals see only matters they are assigned to or members of. Applied server-side to matters, members,
+      timeline, documents, Q&A and legal matches/alerts; hidden matters return 404. Only an admin, partner or the assigned lawyer can
+      change members or the Restricted flag.
 - [x] **Clients** — Create/list/edit clients with contact details.
       Linked to matters.
 - [x] **Matters** — Full matter record (case no., court, jurisdiction, practice area, lawyer, status, priority, dates, legal issues).

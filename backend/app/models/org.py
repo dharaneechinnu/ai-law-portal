@@ -86,6 +86,7 @@ class Matter(IdMixin, TimestampMixin, Base):
     important_dates: Mapped[list] = mapped_column(JSON, default=list)
     description: Mapped[str | None] = mapped_column(Text)
     legal_issues: Mapped[list] = mapped_column(JSON, default=list)
+    restricted: Mapped[bool] = mapped_column(Boolean, default=False)  # visible only to admins, assignee and members
     __table_args__ = (Index("ix_matters_status_lawyer", "status", "assigned_lawyer_id"),)
 
 

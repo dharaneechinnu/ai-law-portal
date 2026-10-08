@@ -93,7 +93,8 @@ frontend/src/
 - Built frontend: animated auth screens, admin panel, account page, clients, matters list/create, 10-tab matter workspace
   (Tasks/Hearings/Communications/AI Activity are placeholders), Legal Intelligence page + matter tab, AI and eCourts settings.
   Dashboard/People/Tasks/Analytics pages are placeholders.
-- RBAC: admin-only on AI settings and user admin. Not yet: per-matter access control, email delivery of invites,
+- RBAC: admin-only on AI settings and user admin. Per-matter access control in `services/access.py` (every matter-scoped
+  route uses `get_matter_or_404(db, id, user)`). Not yet: email delivery of invites,
   automated tests, Sprints 2–5.
 - Blocked on user: eCourts base URL, endpoint paths and a sample response to fill in Settings → Legal data (API key is in hand,
   never in code); choice of first LLM + embedding model; confirm pgvector installed.

@@ -53,6 +53,7 @@ export interface Matter {
   description?: string | null;
   assigned_lawyer_id?: string | null;
   legal_issues: string[];
+  restricted: boolean;
   created_at: string;
 }
 
