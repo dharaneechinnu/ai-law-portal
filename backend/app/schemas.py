@@ -804,3 +804,12 @@ class ModelRouteOut(BaseModel):
 
 class ModelRouteIn(BaseModel):
     model: str | None = None
+
+
+# ---- Firm settings ----
+class FirmSettings(BaseModel):
+    legal_alert_threshold: float | None = None
+    hearing_reminder_hours: int | None = None
+    meeting_reminder_minutes: int | None = None
+    task_due_reminder_hours: int | None = None
+    approval_expiry_days: int | None = None
