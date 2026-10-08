@@ -774,3 +774,22 @@ class ChatOut(BaseModel):
     agent_key: str
     reply: str
     steps: list[StepOut]
+
+
+# ---- Audit ----
+class AuditOut(BaseModel):
+    id: uuid.UUID
+    occurred_at: datetime
+    action: str
+    user_name: str | None = None
+    agent_key: str | None = None
+    agent_name: str | None = None
+    matter_id: uuid.UUID | None = None
+    matter_title: str | None = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    policy_decision: str | None = None
+    approved: bool | None = None
+    approved_by_name: str | None = None
+    executed: bool | None = None
+    result: dict = {}
