@@ -10,11 +10,20 @@ from app.core.db import get_db
 from app.models import Task, User
 from app.schemas import TaskIn, TaskOut, TaskUpdate
 from app.services.matters import add_timeline
+from app.services.notifications import notify
 from app.services.tasks import (
     check_assignee, get_task_or_404, open_dependencies, set_dependencies, to_out, visible_tasks,
 )
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
+
+
+def _notify_assignee(db: Session, task: Task, actor: User) -> None:
+    if task.assignee_id and task.assignee_id != actor.id:
+        notify(db, task.assignee_id, "task", f"Assigned to you: {task.title}", body=f"From {actor.name}",
+               link=f"/matters/{task.matter_id}" if task.matter_id else "/tasks",
+               dedupe_key=f"task:{task.id}:assigned:{task.assignee_id}")
+
 
 STATUS_EVENTS = {"done": ("task_done", "Task done"), "archived": ("task_archived", "Task archived"),
                  "open": ("task_reopened", "Task reopened")}
@@ -47,6 +56,7 @@ def create_task(body: TaskIn, db: Session = Depends(get_db), user: User = Depend
     set_dependencies(db, task, body.depends_on, user)
     if task.matter_id:
         add_timeline(db, task.matter_id, "task_created", f"Task added: {task.title}", user.id, {"task_id": str(task.id)})
+    _notify_assignee(db, task, user)
     db.commit()
     return to_out(db, [task])[0]
 
@@ -62,8 +72,11 @@ def update_task(task_id: uuid.UUID, body: TaskUpdate, db: Session = Depends(get_
         set_dependencies(db, task, data.pop("depends_on") or [], user)
         db.flush()
     new_status = data.pop("status", None)
+    old_assignee = task.assignee_id
     for k, v in data.items():
         setattr(task, k, v)
+    if task.assignee_id != old_assignee:
+        _notify_assignee(db, task, user)
     if new_status and new_status != task.status:
         if new_status == "done" and open_dependencies(db, task.id):
             raise HTTPException(409, "Finish the tasks this depends on first")

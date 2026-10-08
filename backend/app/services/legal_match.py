@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Court, Firm, Judgment, LegalCase, LegalDevelopment, Matter, MatterLegalMatch
 from app.services.matters import add_timeline
+from app.services.notifications import matter_team, notify
 
 WEIGHTS = {"semantic": 0.35, "provisions": 0.2, "facts": 0.15, "court": 0.1, "case_type": 0.1, "recency": 0.1}
 MIN_MATCH = 0.3  # below this a match is not stored
@@ -159,4 +160,7 @@ def match_developments(db: Session, developments: list[LegalDevelopment], jvecs:
                 add_timeline(db, m.id, "judgment_detected",
                              f"Relevant {j.kind} detected: {j.title or j.external_judgment_id}",
                              detail={"judgment_id": str(j.id), "relevance": relevance})
+                for uid in matter_team(db, m.id):
+                    notify(db, uid, "legal", f"Relevant {j.kind}: {m.title}", body=j.title, link=f"/matters/{m.id}",
+                           dedupe_key=f"legal:{dev.id}:{m.id}")
     return stored, alerts

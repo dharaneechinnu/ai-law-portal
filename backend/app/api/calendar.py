@@ -15,6 +15,7 @@ from app.services.calendar import (
     check_people, check_times, get_calendar_provider, items_between, own_event_or_404, refresh_next_hearing,
 )
 from app.services.matters import add_timeline
+from app.services.notifications import notify
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 hearings_router = APIRouter(prefix="/hearings", tags=["hearings"])
@@ -38,6 +39,9 @@ async def create_event(body: EventIn, db: Session = Depends(get_db), user: User 
     event_id = await get_calendar_provider(db).create_event(
         str(user.id), body.title, body.start, body.end, location=body.location, matter_id=body.matter_id,
         attendee_ids=attendees)
+    for uid in attendees:
+        notify(db, uuid.UUID(uid), "meeting", f"Invited: {body.title}", body=f"From {user.name}", link="/calendar",
+               dedupe_key=f"event:{event_id}:invite:{uid}")
     db.commit()
     return next(i for i in items_between(db, user, body.start, body.end) if str(i.id) == event_id)
 
@@ -54,7 +58,11 @@ async def update_event(event_id: uuid.UUID, body: EventUpdate, db: Session = Dep
     if data.get("matter_id"):
         get_matter_or_404(db, data["matter_id"], user)
     if "attendee_ids" in data:
+        before = set(event.attendee_ids or [])
         event.attendee_ids = [a for a in check_people(db, data["attendee_ids"] or []) if a != str(user.id)]
+        for uid in set(event.attendee_ids) - before:
+            notify(db, uuid.UUID(uid), "meeting", f"Invited: {event.title}", body=f"From {user.name}",
+                   link="/calendar", dedupe_key=f"event:{event.id}:invite:{uid}")
     for field, col in (("title", "title"), ("start", "starts_at"), ("end", "ends_at"), ("location", "location"),
                        ("matter_id", "matter_id")):
         if field in data:
