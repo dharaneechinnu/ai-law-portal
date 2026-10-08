@@ -379,3 +379,21 @@ export interface AuditEntry {
   executed?: boolean | null;
   result: Record<string, unknown>;
 }
+
+export interface Bar { label: string; value: number; overdue?: number }
+
+export interface Analytics {
+  days: number;
+  firm: {
+    active_matters: number; avg_matter_age_days: number; overdue_tasks: number; hearings_next_14_days: number;
+    tasks_created: number; tasks_done: number; by_practice_area: Bar[]; workload: Bar[];
+  };
+  legal: {
+    judgments_added: number; alerts_new: number; alerts_reviewed: number; alerts_dismissed: number;
+    high_impact_unreviewed: number; alerts_in_range: number;
+  };
+  ai: {
+    allowed: number; asked: number; blocked: number; approved: number; rejected: number; pending: number;
+    conversations: number; top_actions: Bar[]; by_agent: Bar[]; models: Bar[];
+  };
+}

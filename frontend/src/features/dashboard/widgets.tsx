@@ -23,7 +23,7 @@ export const DEFAULT_LAYOUT: WidgetLayout[] = (Object.keys(WIDGETS) as WidgetId[
 }));
 
 /** Count up to `value` when it arrives. */
-function useCountUp(value: number) {
+export function useCountUp(value: number) {
   const [n, setN] = useState(0);
   const raf = useRef(0);
   useEffect(() => {
