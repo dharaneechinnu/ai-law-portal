@@ -9,6 +9,7 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { RegisterPage } from "@/features/auth/RegisterPage";
 import { SetupPage } from "@/features/auth/SetupPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { CalendarPage } from "@/features/calendar/CalendarPage";
 import { TasksPage } from "@/features/tasks/TasksPage";
 import { MatterDetail } from "@/features/matters/MatterDetail";
 import { MattersPage } from "@/features/matters/MattersPage";
@@ -50,6 +51,7 @@ export default function App() {
             <Route element={<Protected />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/tasks" element={<TasksPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/matters" element={<MattersPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/account" element={<AccountPage />} />

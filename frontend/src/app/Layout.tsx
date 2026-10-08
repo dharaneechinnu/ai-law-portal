@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import {
-  BarChart3, Briefcase, CalendarDays, Gavel, LayoutDashboard, LogOut, Settings, ShieldCheck, UserCircle, Users, Building2,
+  BarChart3, Briefcase, CalendarDays, Gavel, LayoutDashboard, ListChecks, LogOut, Settings, ShieldCheck, UserCircle, Users, Building2,
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,8 @@ const nav = [
   ["/matters", "Matters", Briefcase],
   ["/clients", "Clients", Building2],
   ["/people", "People", Users],
-  ["/tasks", "Tasks & Calendar", CalendarDays],
+  ["/tasks", "Tasks", ListChecks],
+  ["/calendar", "Calendar", CalendarDays],
   ["/legal", "Legal Intelligence", Gavel],
   ["/analytics", "Analytics", BarChart3],
   ["/settings", "Settings", Settings],
