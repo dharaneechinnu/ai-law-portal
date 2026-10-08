@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.core.db import get_db
-from app.models import Client, Matter, TimelineEvent, User
-from app.schemas import MatterIn, MatterOut, MatterUpdate, TimelineOut
+from app.models import Client, Matter, MatterMember, TimelineEvent, User
+from app.schemas import MatterIn, MatterOut, MatterUpdate, MemberIn, MemberOut, TimelineOut
 from app.services.matters import add_timeline, next_matter_number
 
 router = APIRouter(prefix="/matters", tags=["matters"])
@@ -66,3 +66,44 @@ def timeline(matter_id: uuid.UUID, db: Session = Depends(get_db), user: User = D
     return db.scalars(
         select(TimelineEvent).where(TimelineEvent.matter_id == matter_id).order_by(TimelineEvent.occurred_at.desc())
     ).all()
+
+
+def member_out(m: MatterMember, u: User) -> MemberOut:
+    return MemberOut(id=m.id, user_id=u.id, name=u.name, email=u.email, role=m.role)
+
+
+@router.get("/{matter_id}/members", response_model=list[MemberOut])
+def list_members(matter_id: uuid.UUID, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    get_matter_or_404(db, matter_id)
+    rows = db.execute(
+        select(MatterMember, User).join(User, User.id == MatterMember.user_id).where(MatterMember.matter_id == matter_id)
+    ).all()
+    return [member_out(m, u) for m, u in rows]
+
+
+@router.post("/{matter_id}/members", response_model=MemberOut, status_code=201)
+def add_member(matter_id: uuid.UUID, body: MemberIn, db: Session = Depends(get_db),
+               user: User = Depends(get_current_user)):
+    get_matter_or_404(db, matter_id)
+    target = db.get(User, body.user_id)
+    if not target or not target.is_active:
+        raise HTTPException(400, "User not found")
+    if db.scalar(select(MatterMember).where(MatterMember.matter_id == matter_id, MatterMember.user_id == body.user_id)):
+        raise HTTPException(409, "User is already a member")
+    member = MatterMember(matter_id=matter_id, user_id=body.user_id, role=body.role)
+    db.add(member)
+    add_timeline(db, matter_id, "member_added", f"{target.name} added to matter", user.id)
+    db.commit()
+    return member_out(member, target)
+
+
+@router.delete("/{matter_id}/members/{member_id}", status_code=204)
+def remove_member(matter_id: uuid.UUID, member_id: uuid.UUID, db: Session = Depends(get_db),
+                  user: User = Depends(get_current_user)):
+    member = db.get(MatterMember, member_id)
+    if not member or member.matter_id != matter_id:
+        raise HTTPException(404, "Member not found")
+    target = db.get(User, member.user_id)
+    db.delete(member)
+    add_timeline(db, matter_id, "member_removed", f"{target.name} removed from matter", user.id)
+    db.commit()

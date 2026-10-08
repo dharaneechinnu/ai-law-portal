@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./Layout";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext";
+import { AccountPage } from "@/features/account/AccountPage";
+import { ClientsPage } from "@/features/clients/ClientsPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { MatterDetail } from "@/features/matters/MatterDetail";
 import { MattersPage } from "@/features/matters/MattersPage";
@@ -16,7 +18,6 @@ const pages: [string, string, string][] = [
   ["/tasks", "Tasks & Calendar", "Tasks, hearings, meetings (Sprint 3)."],
   ["/legal", "Legal Intelligence", "eCourts developments matched to matters (Sprint 2)."],
   ["/analytics", "Analytics", "Firm, legal and AI analytics (Sprint 5)."],
-  ["/account", "Account", "Profile and preferences (coming next)."],
 ];
 
 function Protected() {
@@ -34,6 +35,8 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route element={<Protected />}>
               <Route path="/matters" element={<MattersPage />} />
+              <Route path="/clients" element={<ClientsPage />} />
+              <Route path="/account" element={<AccountPage />} />
               <Route path="/matters/:id" element={<MatterDetail />} />
               <Route path="/settings" element={<AISettingsPage />} />
               {pages.map(([path, title, hint]) => (

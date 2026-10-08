@@ -13,8 +13,8 @@ python -m venv .venv
 .venv\Scripts\activate          # Windows (use source .venv/bin/activate on macOS/Linux)
 pip install -r requirements.txt
 cp ../.env.example .env         # set DATABASE_URL and SECRET_KEY
-alembic revision --autogenerate -m "initial schema"   # first time only
-alembic upgrade head
+alembic upgrade head                                  # creates the pgvector extension and all tables
+python -m app.seed admin@firm.com 'ChangeMe123' 'Admin'   # roles + first admin
 uvicorn app.main:app --reload   # http://localhost:8000/api/health
 ```
 

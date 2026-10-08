@@ -15,23 +15,23 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 1 — Auth + Matter + Document + RAG
 
-- [~] **Auth & sessions** — Email/password login with JWT; `/api/auth/login` and `/me`.
+- [x] **Auth & sessions** — Email/password login with JWT; `/api/auth/login` and `/me`.
       Passwords are hashed server-side.
-- [ ] **Account profile** — Name, role, designation, practice area, time zone, working hours, notification prefs, briefing time, AI prefs.
+- [x] **Account profile** — Name, role, designation, practice area, time zone, working hours, notification prefs, briefing time, AI prefs.
       Editable by the user; role changes are admin-only.
-- [~] **RBAC** — Roles: Admin, Partner, Lawyer, Associate, Paralegal; permission checks as FastAPI dependencies.
+- [x] **RBAC** — Roles: Admin, Partner, Lawyer, Associate, Paralegal; permission checks as FastAPI dependencies.
       Enforced on the server for every router.
-- [~] **Clients** — Create/list/edit clients with contact details.
+- [x] **Clients** — Create/list/edit clients with contact details.
       Linked to matters.
-- [~] **Matters** — Full matter record (case no., court, jurisdiction, practice area, lawyer, status, priority, dates, legal issues).
-      Includes matter members and the 10-tab workspace UI.
-- [~] **Case timeline** — Chronological, DB-backed event feed per matter (created, doc uploaded, task done, judgment detected, AI approved…).
+- [x] **Matters** — Full matter record (case no., court, jurisdiction, practice area, lawyer, status, priority, dates, legal issues).
+      Includes matter members (add/remove, timeline-logged) and the 10-tab workspace UI; Tasks, Hearings, Legal Intelligence, Communications and AI Activity tabs are placeholders until Sprints 2-4.
+- [x] **Case timeline** — Chronological, DB-backed event feed per matter (created, doc uploaded, task done, judgment detected, AI approved…).
       Written by services, never by the LLM.
-- [~] **Document upload & extraction** — Upload PDF/DOCX/TXT, store the file locally, keep metadata in Postgres, extract text per page.
+- [x] **Document upload & extraction** — Upload PDF/DOCX/TXT, store the file locally, keep metadata in Postgres, extract text per page.
       Processing runs as a FastAPI background task.
-- [~] **Chunking + embeddings + pgvector** — Clean and chunk text, embed through the configured `EmbeddingProvider`, store vectors with doc/page/matter metadata.
+- [x] **Chunking + embeddings + pgvector** — Clean and chunk text, embed through the configured `EmbeddingProvider`, store vectors with doc/page/matter metadata.
       Postgres full-text index supports hybrid search.
-- [~] **Matter Q&A (RAG)** — Retrieve top chunks, send only those to the LLM, return an answer with document/page citations.
+- [x] **Matter Q&A (RAG)** — Retrieve top chunks, send only those to the LLM, return an answer with document/page citations.
       Refuses to guess when no source supports an answer.
 
 ## Sprint 2 — eCourts + Legal Intelligence
@@ -101,8 +101,10 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 ## Open Items / Needs From You
 
 - [ ] eCourts API: base URL, auth method, endpoints, sample response (needed to build the adapter — nothing is invented).
-- [ ] Confirm pgvector extension is installed in your Postgres (`CREATE EXTENSION vector;`).
+- [ ] Confirm the pgvector package is installed on your Postgres server (the initial migration runs `CREATE EXTENSION IF NOT EXISTS vector`).
 - [ ] Choose first LLM + embedding model once the Settings page exists (embedding dimension must be fixed in the schema; default 768).
 
-> `[~]` in Sprint 1 = code written and compiles; end-to-end run against Postgres + an LLM still to be verified.
-> Account profile UI and matter tabs beyond Overview/Timeline/Documents/Ask AI are not built yet.
+> Sprint 1 was verified end to end against Postgres 16 + pgvector: login, RBAC (403 for non-admin on AI settings),
+> client/matter CRUD, members, profile validation, upload -> extract -> embed -> hybrid retrieval -> cited answer, timeline.
+> The LLM and embedding endpoints used for that run were a local OpenAI-compatible stub; try a real model from the Settings page.
+> Clients and Account pages are in the sidebar. Role changes remain admin-only (user-management UI comes later).

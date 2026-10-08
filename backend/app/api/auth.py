@@ -6,7 +6,7 @@ from app.api.deps import get_current_user
 from app.core.db import get_db
 from app.core.security import create_access_token, verify_password
 from app.models import User
-from app.schemas import LoginIn, ProfileUpdate, TokenOut, UserOut
+from app.schemas import LoginIn, ProfileUpdate, TokenOut, UserBrief, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -41,3 +41,10 @@ def update_me(body: ProfileUpdate, user: User = Depends(get_current_user), db: S
         setattr(user, k, v)
     db.commit()
     return user_out(user)
+
+
+@router.get("/users", response_model=list[UserBrief])
+def list_users(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Active colleagues, for assignee and matter-member pickers."""
+    rows = db.scalars(select(User).where(User.is_active.is_(True)).order_by(User.name)).all()
+    return [UserBrief(id=u.id, name=u.name, email=u.email, role_name=u.role.name) for u in rows]

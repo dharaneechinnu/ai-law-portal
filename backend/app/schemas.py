@@ -1,7 +1,10 @@
 import uuid
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+import re
+from zoneinfo import ZoneInfo
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 
 class ORM(BaseModel):
@@ -45,6 +48,23 @@ class ProfileUpdate(BaseModel):
     notification_prefs: dict | None = None
     daily_briefing_time: str | None = None
     ai_prefs: dict | None = None
+
+    @field_validator("timezone")
+    @classmethod
+    def valid_timezone(cls, v):
+        if v is not None:
+            try:
+                ZoneInfo(v)
+            except Exception:
+                raise ValueError("Unknown time zone")
+        return v
+
+    @field_validator("daily_briefing_time")
+    @classmethod
+    def valid_time(cls, v):
+        if v and not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", v):
+            raise ValueError("Use HH:MM (24-hour)")
+        return v or None
 
 
 class ClientIn(BaseModel):
@@ -152,3 +172,23 @@ class AIConfigOut(BaseModel):
     embedding_base_url: str | None = None
     has_api_key: bool = False
     has_embedding_api_key: bool = False
+
+
+class UserBrief(ORM):
+    id: uuid.UUID
+    name: str
+    email: str
+    role_name: str
+
+
+class MemberIn(BaseModel):
+    user_id: uuid.UUID
+    role: str = "member"
+
+
+class MemberOut(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    name: str
+    email: str
+    role: str

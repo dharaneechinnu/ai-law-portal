@@ -4,8 +4,29 @@ export interface User {
   email: string;
   role_name: string;
   designation?: string | null;
+  practice_areas: string[];
+  phone?: string | null;
+  office_location?: string | null;
   timezone: string;
+  working_hours: Record<string, [string, string] | null>;
+  notification_prefs: Record<string, boolean>;
   daily_briefing_time?: string | null;
+  ai_prefs: Record<string, string>;
+}
+
+export interface UserBrief {
+  id: string;
+  name: string;
+  email: string;
+  role_name: string;
+}
+
+export interface Member {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  role: string;
 }
 
 export interface Client {
@@ -13,6 +34,8 @@ export interface Client {
   name: string;
   email?: string | null;
   phone?: string | null;
+  address?: string | null;
+  notes?: string | null;
 }
 
 export interface Matter {
@@ -27,6 +50,7 @@ export interface Matter {
   status: string;
   priority: string;
   description?: string | null;
+  assigned_lawyer_id?: string | null;
   legal_issues: string[];
   created_at: string;
 }

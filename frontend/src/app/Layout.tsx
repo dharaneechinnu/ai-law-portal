@@ -5,6 +5,7 @@ import { useAuth } from "@/features/auth/AuthContext";
 const nav = [
   ["/", "Dashboard"],
   ["/matters", "Matters"],
+  ["/clients", "Clients"],
   ["/people", "People"],
   ["/tasks", "Tasks & Calendar"],
   ["/legal", "Legal Intelligence"],
