@@ -97,7 +97,7 @@ export function WidgetBody({ id, data }: { id: WidgetId; data: Dashboard }) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label="Active matters" value={data.stats.open_matters} tone="text-ink-900" to="/matters" />
           <Stat label="Overdue tasks" value={data.stats.overdue_tasks} tone={data.stats.overdue_tasks ? "text-red-600" : "text-ink-900"} to="/tasks" />
-          <Stat label="Hearings this week" value={data.stats.hearings_week} tone="text-ink-900" to="/tasks" />
+          <Stat label="Hearings this week" value={data.stats.hearings_week} tone="text-ink-900" to="/calendar" />
           <Stat label="New alerts" value={data.stats.new_alerts} tone={data.stats.new_alerts ? "text-brass-600" : "text-ink-900"} to="/legal" />
         </div>
       );
