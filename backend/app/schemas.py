@@ -638,3 +638,109 @@ class BriefingOut(ORM):
     facts: dict
     source: str
     created_at: datetime
+
+
+# ---- Agents, policy and approvals ----
+class ActionIn(BaseModel):
+    agent_key: str | None = None
+    action: str
+    args: dict = {}
+
+
+class ActionResultOut(BaseModel):
+    status: str  # executed / pending_approval / blocked / failed
+    decision: str
+    reason: str
+    approval_id: uuid.UUID | None = None
+    result: dict | None = None
+
+
+class ApprovalOut(BaseModel):
+    id: uuid.UUID
+    action: str
+    label: str
+    agent_key: str | None = None
+    agent_name: str | None = None
+    summary: str
+    payload: dict
+    status: str
+    requested_for: str
+    decided_by_name: str | None = None
+    decided_at: datetime | None = None
+    result: dict | None = None
+    created_at: datetime
+
+
+class AgentInfoOut(BaseModel):
+    key: str
+    name: str
+    enabled: bool
+    mode: str
+
+
+class ToolInfoOut(BaseModel):
+    action: str
+    label: str
+    description: str
+    is_mutation: bool
+    is_external: bool
+    is_destructive: bool
+    decision: str
+
+
+class OverrideOut(BaseModel):
+    id: uuid.UUID
+    action: str
+    agent_key: str | None = None
+    decision: str
+    expires_at: datetime
+    created_by_name: str | None = None
+
+
+class AgentControlsOut(BaseModel):
+    kill_switch: bool
+    agents: list[AgentInfoOut]
+    tools: list[ToolInfoOut]
+    overrides: list[OverrideOut]
+
+
+class KillSwitchIn(BaseModel):
+    on: bool
+
+
+class AgentUpdate(BaseModel):
+    enabled: bool
+    mode: str
+
+    @field_validator("mode")
+    @classmethod
+    def valid_mode(cls, v):
+        if v not in {"suggest", "approval", "autonomous"}:
+            raise ValueError("Unknown mode")
+        return v
+
+
+class PolicyIn(BaseModel):
+    decision: str
+    agent_key: str | None = None
+
+    @field_validator("decision")
+    @classmethod
+    def valid_decision(cls, v):
+        if v not in {"ALLOWED", "APPROVAL_REQUIRED", "DISABLED"}:
+            raise ValueError("Unknown decision")
+        return v
+
+
+class OverrideIn(BaseModel):
+    action: str
+    agent_key: str | None = None
+    decision: str
+    expires_at: datetime
+
+    @field_validator("decision")
+    @classmethod
+    def valid_decision(cls, v):
+        if v not in {"ALLOWED", "APPROVAL_REQUIRED"}:
+            raise ValueError("An override can allow or ask first")
+        return v
