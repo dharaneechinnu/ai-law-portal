@@ -12,6 +12,10 @@ class LLMProvider(ABC):
     @abstractmethod
     async def test_connection(self) -> bool: ...
 
+    def chat_model(self) -> Any:
+        """LangChain chat model for tool-calling agents (LangGraph). Providers that cannot call tools raise."""
+        raise NotImplementedError("This AI provider cannot run agents")
+
 
 class EmbeddingProvider(ABC):
     @abstractmethod

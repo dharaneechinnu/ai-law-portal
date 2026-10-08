@@ -21,6 +21,9 @@ class OpenAICompatibleLLM(LLMProvider):
         await self.complete([{"role": "user", "content": "ping"}])
         return True
 
+    def chat_model(self) -> ChatOpenAI:
+        return self.client
+
 
 class OpenAICompatibleEmbeddings(EmbeddingProvider):
     def __init__(self, base_url: str | None, api_key: str | None, model: str):
