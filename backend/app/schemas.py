@@ -34,8 +34,7 @@ class UserOut(ORM):
     firm_name: str | None = None
 
 
-class TokenOut(BaseModel):
-    access_token: str
+class SessionOut(BaseModel):
     user: UserOut
 
 

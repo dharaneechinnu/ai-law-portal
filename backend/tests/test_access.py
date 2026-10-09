@@ -49,3 +49,16 @@ def test_only_admin_can_configure_ai_and_integrations(client, admin, make_user):
         assert client.get("/api/settings/firm", headers=h).status_code == 403, role
         assert client.get("/api/agents/controls", headers=h).status_code == 403, role
     assert client.get("/api/settings/ai", headers=headers(admin)).status_code == 200
+
+
+def test_login_uses_httponly_session_cookie(client, admin):
+    r = client.post("/api/auth/login", json={"email": "admin@test.firm", "password": "Admin@12345"})
+    assert r.status_code == 200 and "access_token" not in r.json()
+    cookie = r.headers["set-cookie"].lower()
+    assert cookie.startswith("session=") and "httponly" in cookie and "samesite=lax" in cookie and "max-age" not in cookie
+    try:
+        assert client.get("/api/auth/me").json()["email"] == "admin@test.firm"  # cookie alone authenticates
+        assert client.post("/api/auth/logout").status_code == 204
+        assert client.get("/api/auth/me").status_code == 401
+    finally:
+        client.cookies.clear()

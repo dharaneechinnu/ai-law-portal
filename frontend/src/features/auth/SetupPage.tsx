@@ -42,7 +42,7 @@ export function SetupPage() {
     try {
       const { confirm: _confirm, ...body } = f;
       const s = await api<Session>("/auth/setup", { method: "POST", body: JSON.stringify(body) });
-      setSession(s.access_token, s.user);
+      setSession(s.user);
       qc.invalidateQueries({ queryKey: ["setup"] });
       setStep(2);
     } catch (e) {

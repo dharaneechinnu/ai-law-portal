@@ -51,7 +51,14 @@ def client():
 def auth(c, email: str, password: str) -> dict:
     r = c.post("/api/auth/login", json={"email": email, "password": password})
     assert r.status_code == 200, r.text
-    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+    return {"Authorization": f"Bearer {_take_session(c, r)}"}
+
+
+def _take_session(c, r) -> str:
+    """Read the session cookie and drop it from the shared client, so each test authenticates explicitly."""
+    token = r.cookies["session"]
+    c.cookies.clear()
+    return token
 
 
 @pytest.fixture(scope="session")
@@ -59,7 +66,7 @@ def admin(client):
     r = client.post("/api/auth/setup", json={"firm_name": "Test Firm", "name": "Test Admin",
                                               "email": "admin@test.firm", "password": "Admin@12345"})
     assert r.status_code == 201, r.text
-    return {"Authorization": f"Bearer {r.json()['access_token']}", "id": r.json()["user"]["id"]}
+    return {"Authorization": f"Bearer {_take_session(client, r)}", "id": r.json()["user"]["id"]}
 
 
 def headers(h: dict) -> dict:

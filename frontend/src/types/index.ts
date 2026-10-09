@@ -186,7 +186,6 @@ export interface SetupStatus {
 }
 
 export interface Session {
-  access_token: string;
   user: User;
 }
 

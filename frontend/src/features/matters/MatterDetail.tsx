@@ -10,7 +10,7 @@ import { EmptyState, PageHero } from "@/components/ui/page";
 import { initials, roleMeta } from "@/features/admin/roles";
 import { PRIORITY_TONE } from "./MattersPage";
 import { cn } from "@/lib/utils";
-import { api, errorMessage } from "@/services/api";
+import { api, apiFetch, errorMessage } from "@/services/api";
 import type { AskResult, Client, DocumentRow, Matter, Member, TimelineEvent, UserBrief } from "@/types";
 import { AuditLog } from "@/features/ai/AuditLog";
 import { HearingsTab } from "@/features/calendar/HearingsTab";
@@ -146,9 +146,7 @@ function Team({ id }: { id: string }) {
     onSuccess: () => { setUserId(""); refresh(); },
   });
   const remove = useMutation({
-    mutationFn: (mid: string) => fetch(`/api/matters/${id}/members/${mid}`, {
-      method: "DELETE", headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    }),
+    mutationFn: (mid: string) => apiFetch(`/matters/${id}/members/${mid}`, { method: "DELETE" }),
     onSuccess: refresh,
   });
   const available = users.filter((u) => !members.some((m) => m.user_id === u.id));
@@ -223,10 +221,7 @@ function Documents({ id }: { id: string }) {
     mutationFn: async (file: File) => {
       const fd = new FormData();
       fd.append("file", file);
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/matters/${id}/documents`, {
-        method: "POST", body: fd, headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await apiFetch(`/matters/${id}/documents`, { method: "POST", body: fd });
       if (!res.ok) throw new Error(await res.text());
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["documents", id] }); qc.invalidateQueries({ queryKey: ["timeline", id] }); },

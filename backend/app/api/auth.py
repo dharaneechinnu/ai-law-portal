@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.core.db import get_db
-from app.core.security import create_access_token, verify_password
+from app.core.security import clear_session_cookie, set_session_cookie, verify_password
 from app.models import User
-from app.schemas import (AcceptInviteIn, InviteInfo, LoginIn, ProfileUpdate, SetupIn, SetupStatus, TokenOut,
+from app.schemas import (AcceptInviteIn, InviteInfo, LoginIn, ProfileUpdate, SessionOut, SetupIn, SetupStatus,
                          UserBrief, UserOut)
 from app.services import users as users_svc
 from app.models import Firm
@@ -24,13 +24,19 @@ def user_out(u: User) -> UserOut:
     )
 
 
-@router.post("/login", response_model=TokenOut)
-def login(body: LoginIn, db: Session = Depends(get_db)):
+@router.post("/login", response_model=SessionOut)
+def login(body: LoginIn, response: Response, db: Session = Depends(get_db)):
     user = db.scalar(select(User).where(User.email == body.email.lower()))
     if not user or not user.is_active or not verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
     users_svc.record_login(db, user)
-    return TokenOut(access_token=create_access_token(str(user.id)), user=user_out(user))
+    set_session_cookie(response, str(user.id))
+    return SessionOut(user=user_out(user))
+
+
+@router.post("/logout", status_code=204)
+def logout(response: Response):
+    clear_session_cookie(response)
 
 
 @router.get("/me", response_model=UserOut)
@@ -60,12 +66,13 @@ def setup_status(db: Session = Depends(get_db)):
     return SetupStatus(needs_setup=users_svc.needs_setup(db), firm_name=firm.name if firm else None)
 
 
-@router.post("/setup", response_model=TokenOut, status_code=201)
-def setup(body: SetupIn, db: Session = Depends(get_db)):
+@router.post("/setup", response_model=SessionOut, status_code=201)
+def setup(body: SetupIn, response: Response, db: Session = Depends(get_db)):
     """First-run registration of the firm and its first admin. Disabled once any user exists."""
     user = users_svc.setup_firm(db, body.firm_name.strip(), body.name.strip(), body.email, body.password)
     users_svc.record_login(db, user)
-    return TokenOut(access_token=create_access_token(str(user.id)), user=user_out(user))
+    set_session_cookie(response, str(user.id))
+    return SessionOut(user=user_out(user))
 
 
 @router.get("/invite/{token}", response_model=InviteInfo)
@@ -74,8 +81,9 @@ def invite_info(token: str, db: Session = Depends(get_db)):
     return InviteInfo(email=u.email, name=u.name, role_name=u.role.name, firm_name=u.firm.name if u.firm else None)
 
 
-@router.post("/accept-invite", response_model=TokenOut)
-def accept_invite(body: AcceptInviteIn, db: Session = Depends(get_db)):
+@router.post("/accept-invite", response_model=SessionOut)
+def accept_invite(body: AcceptInviteIn, response: Response, db: Session = Depends(get_db)):
     user = users_svc.accept_invite(db, body.token, body.password, (body.name or "").strip() or None)
     users_svc.record_login(db, user)
-    return TokenOut(access_token=create_access_token(str(user.id)), user=user_out(user))
+    set_session_cookie(response, str(user.id))
+    return SessionOut(user=user_out(user))

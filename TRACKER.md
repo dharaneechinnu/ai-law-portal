@@ -15,7 +15,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 1 — Auth + Matter + Document + RAG
 
-- [x] **Auth & sessions** — Email/password login with JWT; `/api/auth/login` and `/me`.
+- [x] **Auth & sessions** — Email/password login; the JWT lives in an HttpOnly, SameSite=Lax session cookie (never in JS/localStorage); `/api/auth/login`, `/logout`, `/me`. Bearer header still accepted for API clients/tests.
       Branded, animated sign-in, invite-activation and first-run setup screens (desktop and mobile).
 - [x] **Firm setup & user access (admin)** — First-run `/setup` registers the firm and its first admin (refused once any user exists).
       Admin "Team & access" panel creates logins (one-time invite link valid 7 days, or temporary password), changes roles,

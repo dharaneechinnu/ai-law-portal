@@ -1,10 +1,11 @@
 import uuid
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.config import settings
 from app.core.security import decode_access_token
 from app.models import User
 
@@ -14,12 +15,14 @@ from app.services.users import ROLES  # noqa: F401  (re-exported)
 
 
 def get_current_user(
-    creds: HTTPAuthorizationCredentials | None = Depends(bearer), db: Session = Depends(get_db)
+    request: Request, creds: HTTPAuthorizationCredentials | None = Depends(bearer), db: Session = Depends(get_db)
 ) -> User:
-    if not creds:
+    # The browser authenticates with the HttpOnly session cookie; a Bearer header is accepted for API clients and tests.
+    token = creds.credentials if creds else request.cookies.get(settings.session_cookie_name)
+    if not token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not authenticated")
     try:
-        user_id = uuid.UUID(decode_access_token(creds.credentials))
+        user_id = uuid.UUID(decode_access_token(token))
     except Exception:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid or expired token")
     user = db.get(User, user_id)

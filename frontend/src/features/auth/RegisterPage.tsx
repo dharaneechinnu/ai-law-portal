@@ -104,7 +104,7 @@ function AcceptInvite({ token }: { token: string }) {
     err.clear();
     try {
       const s = await api<Session>("/auth/accept-invite", { method: "POST", body: JSON.stringify({ token, password, name }) });
-      setSession(s.access_token, s.user);
+      setSession(s.user);
       setDone(true);
     } catch (e) {
       err.fail(e);
