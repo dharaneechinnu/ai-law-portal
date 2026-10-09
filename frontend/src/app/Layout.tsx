@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-  BarChart3, Briefcase, Building2, CalendarDays, ChevronsLeft, Gavel, LayoutDashboard, ListChecks, LogOut, Menu, Moon, Search,
-  Settings, ShieldCheck, Sparkles, Stamp, Sun, UserCircle, Users, X,
-} from "lucide-react";
+import { LogOut, Menu, Moon, Search, Settings, ShieldCheck, Sparkles, Sun, UserCircle, X } from "lucide-react";
 import { api } from "@/services/api";
 import { Logo } from "@/components/brand/Logo";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -14,114 +11,66 @@ import { GO_KEYS, MOD, fire, typing } from "@/lib/shortcuts";
 import { clearTheme, useTheme } from "@/lib/theme";
 import { useAuth } from "@/features/auth/AuthContext";
 import { initials } from "@/features/admin/roles";
+import { ADMIN_NAV, Dock, NAV, readDock, type DockSide } from "./Dock";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { AssistantPanel } from "@/features/ai/AssistantPanel";
 
-const nav = [
-  ["Work", [
-    ["/", "Dashboard", LayoutDashboard],
-    ["/matters", "Matters", Briefcase],
-    ["/clients", "Clients", Building2],
-    ["/people", "People", Users],
-    ["/tasks", "Tasks", ListChecks],
-    ["/calendar", "Calendar", CalendarDays],
-  ]],
-  ["Intelligence", [
-    ["/legal", "Legal Intelligence", Gavel],
-    ["/approvals", "Approvals", Stamp],
-    ["/analytics", "Analytics", BarChart3],
-  ]],
-  ["You", [
-    ["/settings", "Settings", Settings],
-    ["/account", "Account", UserCircle],
-  ]],
-] as const;
-
-const COLLAPSE_KEY = "lex-sidebar-collapsed";
-const readCollapsed = () => { try { return localStorage.getItem(COLLAPSE_KEY) === "1"; } catch { return false; } };
-
-function Item({ to, label, Icon, badge = 0, collapsed, onNavigate }: {
-  to: string; label: string; Icon: typeof Users; badge?: number; collapsed: boolean; onNavigate?: () => void;
-}) {
+function MobileNav({ onNavigate, pending, admin }: { onNavigate: () => void; pending: number; admin: boolean }) {
+  const items = admin ? [...NAV, ADMIN_NAV] : NAV;
   return (
-    <NavLink to={to} end={to === "/"} onClick={onNavigate} title={collapsed ? label : undefined}
-      className={({ isActive }) => cn(
-        "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-night-200/80 transition-all duration-200 hover:bg-snow/5 hover:text-snow",
-        isActive && "bg-snow/10 text-snow",
-        collapsed && "justify-center px-0",
-      )}>
-      {({ isActive }) => (
-        <>
-          <span className={cn("absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brass-400 transition-transform duration-300",
-            isActive ? "scale-y-100" : "scale-y-0")} />
-          <Icon className={cn("size-[18px] shrink-0 transition-all duration-200 group-hover:scale-110",
-            isActive ? "text-brass-300" : "text-night-300 group-hover:text-brass-200")} />
-          {!collapsed && <span className="truncate">{label}</span>}
-          {badge > 0 && (
-            <span key={badge} className={cn("grid h-5 min-w-5 animate-pop place-items-center rounded-full bg-brass-400 px-1.5 text-[11px] font-semibold tabular-nums text-night-950",
-              collapsed ? "absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px]" : "ml-auto")}>{badge}</span>
-          )}
-        </>
-      )}
-    </NavLink>
+    <div className="flex h-full flex-col px-3 py-5">
+      <div className="mb-6 pl-2"><Logo dark /></div>
+      <nav aria-label="Main" className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
+        {items.map(([to, label, Icon]) => (
+          <NavLink key={to} to={to} end={to === "/"} onClick={onNavigate}
+            className={({ isActive }) => cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-night-200/80 transition hover:bg-snow/5 hover:text-snow",
+              isActive && "bg-snow/10 text-snow")}>
+            <Icon className="size-[18px] text-night-300" />
+            <span className="flex-1">{label}</span>
+            {to === "/approvals" && pending > 0 && (
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brass-400 px-1.5 text-[11px] font-semibold text-night-950">{pending}</span>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
   );
 }
 
-function Sidebar({ collapsed, onCollapse, onNavigate, pending }: {
-  collapsed: boolean; onCollapse?: () => void; onNavigate?: () => void; pending: number;
-}) {
+function AvatarMenu() {
   const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
+  }, [open]);
+  const row = "flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink-700 transition hover:bg-ink-50";
   return (
-    <div className="flex h-full flex-col px-3 py-5">
-      <div className={cn("mb-7 flex items-center", collapsed ? "justify-center" : "justify-between pl-2")}>
-        {collapsed ? <Logo dark compact /> : <Logo dark />}
-        {onCollapse && !collapsed && (
-          <button onClick={onCollapse} aria-label="Collapse sidebar" title="Collapse"
-            className="grid size-7 place-items-center rounded-lg text-night-300 transition hover:bg-snow/10 hover:text-snow">
-            <ChevronsLeft className="size-4" />
-          </button>
-        )}
-      </div>
-      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
-        {nav.map(([group, items], gi) => (
-          <div key={group} className={cn(gi > 0 && "mt-4")}>
-            {!collapsed && <div className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-night-400">{group}</div>}
-            {collapsed && gi > 0 && <div className="mx-auto mb-3 h-px w-6 bg-snow/10" />}
-            {items.map(([to, label, Icon]) => (
-              <Item key={to} to={to} label={label} Icon={Icon} collapsed={collapsed} onNavigate={onNavigate}
-                badge={to === "/approvals" ? pending : 0} />
-            ))}
+    <div ref={ref} className="relative">
+      <button onClick={() => setOpen(!open)} aria-label="Account menu" aria-expanded={open}
+        className="ml-1 grid size-9 place-items-center rounded-full bg-gradient-to-br from-brass-300 to-brass-600 text-xs font-bold text-night-950 ring-2 ring-snow/10 transition hover:ring-brass-300/60">
+        {initials(user?.name ?? "")}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-60 origin-top-right animate-palette rounded-2xl border border-ink-100 bg-white p-2 text-ink-900 shadow-2xl">
+          <div className="border-b border-ink-50 px-3 pb-2.5 pt-1.5">
+            <div className="truncate text-sm font-semibold">{user?.name}</div>
+            <div className="truncate text-xs text-ink-500"><span className="capitalize">{user?.role_name}</span> · {user?.email}</div>
           </div>
-        ))}
-        {user?.role_name === "admin" && (
-          <div className="mt-4">
-            {!collapsed && <div className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-night-400">Admin</div>}
-            {collapsed && <div className="mx-auto mb-3 h-px w-6 bg-snow/10" />}
-            <Item to="/admin/users" label="Team & access" Icon={ShieldCheck} collapsed={collapsed} onNavigate={onNavigate} />
+          <div className="pt-1.5">
+            <Link to="/account" onClick={() => setOpen(false)} className={row}><UserCircle className="size-4 text-ink-400" />Account</Link>
+            {user?.role_name === "admin" && (
+              <Link to="/admin/users" onClick={() => setOpen(false)} className={row}><ShieldCheck className="size-4 text-ink-400" />Team & access</Link>
+            )}
+            <button onClick={logout} className={cn(row, "w-full")}><LogOut className="size-4 text-ink-400" />Sign out</button>
           </div>
-        )}
-      </nav>
-      {onCollapse && collapsed && (
-        <button onClick={onCollapse} aria-label="Expand sidebar" title="Expand"
-          className="mx-auto mb-3 grid size-8 place-items-center rounded-lg text-night-300 transition hover:bg-snow/10 hover:text-snow">
-          <ChevronsLeft className="size-4 rotate-180" />
-        </button>
+        </div>
       )}
-      <div className={cn("flex items-center gap-3 rounded-xl bg-snow/5 p-2.5", collapsed && "flex-col p-2")}>
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brass-300 to-brass-600 text-xs font-semibold text-night-950 ring-2 ring-snow/10">
-          {initials(user?.name ?? "")}
-        </span>
-        {!collapsed && (
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium text-snow">{user?.name}</div>
-            <div className="truncate text-xs capitalize text-night-300">{user?.role_name}</div>
-          </div>
-        )}
-        <button onClick={logout} aria-label="Sign out" title="Sign out"
-          className="grid size-8 place-items-center rounded-lg text-night-300 transition hover:bg-snow/10 hover:text-snow">
-          <LogOut className="size-4" />
-        </button>
-      </div>
     </div>
   );
 }
@@ -132,7 +81,7 @@ function ThemeToggle() {
   return (
     <button aria-label={dark ? "Switch to light theme" : "Switch to dark theme"} title={`${dark ? "Light" : "Dark"} theme (Shift+D)`}
       onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 }); }}
-      className="relative grid size-9 place-items-center overflow-hidden rounded-xl text-ink-500 transition hover:bg-ink-50 hover:text-ink-900">
+      className="relative grid size-10 place-items-center overflow-hidden rounded-xl text-night-200 transition hover:bg-snow/10 hover:text-snow">
       <Sun className={cn("absolute size-[18px] transition-all duration-500", dark ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0")} />
       <Moon className={cn("absolute size-[18px] transition-all duration-500", dark ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100")} />
     </button>
@@ -169,7 +118,8 @@ function useGlobalKeys() {
 
 export function Layout() {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const { user } = useAuth();
+  const [side, setSide] = useState<DockSide>(readDock);
   const [mobileOpen, setMobileOpen] = useState(false);
   useTheme();
   useGlobalKeys();
@@ -182,17 +132,42 @@ export function Layout() {
     refetchInterval: 30_000,
   });
 
-  const collapse = () => setCollapsed((c) => {
-    try { localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1"); } catch { /* per-visit only */ }
-    return !c;
-  });
+  const admin = user?.role_name === "admin";
+  const items = [...NAV, ...(admin ? [ADMIN_NAV] : [])].map(([to, label, Icon]) => ({
+    to, label, Icon, badge: to === "/approvals" ? pending : 0,
+  }));
 
   return (
-    <div className="flex min-h-screen">
-      <aside className={cn("sticky top-0 hidden h-screen shrink-0 bg-night-950 transition-[width] duration-300 ease-out md:block",
-        collapsed ? "w-[76px]" : "w-64")}>
-        <Sidebar collapsed={collapsed} onCollapse={collapse} pending={pending} />
-      </aside>
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 grid h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 bg-night-950 px-3 text-snow shadow-[0_1px_0_rgba(255,255,255,0.06)] md:px-4">
+        <div className="flex items-center gap-1">
+          <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
+            className="grid size-9 place-items-center rounded-xl text-night-200 hover:bg-snow/10 md:hidden">
+            <Menu className="size-5" />
+          </button>
+          <Link to="/" aria-label="Dashboard"><Logo dark className="[&>span:last-child]:hidden sm:[&>span:last-child]:inline" /></Link>
+        </div>
+        <button onClick={() => fire("palette")} aria-label="Search"
+          className="group mx-auto flex h-10 w-10 items-center justify-center sm:w-full sm:max-w-xl sm:justify-start gap-2.5 rounded-xl bg-snow/[0.07] px-3.5 text-sm text-night-300 ring-1 ring-snow/10 transition hover:bg-snow/10 hover:ring-brass-300/40">
+          <Search className="size-4 shrink-0 transition group-hover:text-brass-300" />
+          <span className="hidden flex-1 truncate text-left sm:inline">Search matters, clients, documents…</span>
+          <span className="hidden items-center gap-1 sm:flex"><kbd>{MOD}</kbd><kbd>K</kbd></span>
+        </button>
+        <div className="flex items-center gap-1">
+          <button onClick={() => fire("assistant")} title={`Ask AI (${MOD}+J)`}
+            className="group mr-1 hidden h-9 items-center gap-2 rounded-xl bg-gradient-to-br from-brass-300 to-brass-500 px-3.5 text-sm font-semibold text-night-950 shadow-lg shadow-brass-500/20 transition hover:brightness-105 sm:flex">
+            <Sparkles className="size-4 transition group-hover:rotate-12 group-hover:scale-110" /> Ask AI
+          </button>
+          <ThemeToggle />
+          <NotificationBell />
+          <NavLink to="/settings" aria-label="Settings" title="Settings"
+            className={({ isActive }) => cn("group grid size-10 place-items-center rounded-xl text-night-200 transition hover:bg-snow/10 hover:text-snow",
+              isActive && "bg-snow/10 text-brass-300")}>
+            <Settings className="size-[18px] transition-transform duration-500 group-hover:rotate-90" />
+          </NavLink>
+          <AvatarMenu />
+        </div>
+      </header>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
@@ -202,33 +177,18 @@ export function Layout() {
               className="absolute right-3 top-5 grid size-8 place-items-center rounded-lg text-night-300 hover:bg-snow/10 hover:text-snow">
               <X className="size-4" />
             </button>
-            <Sidebar collapsed={false} onNavigate={() => setMobileOpen(false)} pending={pending} />
+            <MobileNav onNavigate={() => setMobileOpen(false)} pending={pending} admin={admin} />
           </aside>
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-ink-100/70 bg-slate-50/75 px-4 backdrop-blur-xl md:px-8">
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
-            className="grid size-9 place-items-center rounded-xl text-ink-500 hover:bg-ink-50 md:hidden">
-            <Menu className="size-5" />
-          </button>
-          <button onClick={() => fire("palette")}
-            className="group flex h-10 w-full max-w-md items-center gap-2.5 rounded-xl border border-ink-100 bg-white px-3 text-sm text-ink-400 shadow-sm transition hover:border-brass-300 hover:shadow-md">
-            <Search className="size-4 transition group-hover:text-brass-600" />
-            <span className="flex-1 truncate text-left">Search or jump to…</span>
-            <span className="hidden items-center gap-1 sm:flex"><kbd>{MOD}</kbd><kbd>K</kbd></span>
-          </button>
-          <div className="ml-auto flex items-center gap-1">
-            <button onClick={() => fire("assistant")} title={`Assistant (${MOD}+J)`}
-              className="group hidden h-9 items-center gap-2 rounded-xl px-3 text-sm font-medium text-ink-600 transition hover:bg-brass-100/60 hover:text-brass-700 sm:flex">
-              <Sparkles className="size-4 text-brass-500 transition group-hover:rotate-12 group-hover:scale-110" /> Ask AI
-            </button>
-            <ThemeToggle />
-            <NotificationBell />
-          </div>
-        </header>
-        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
+      <div className={cn("flex flex-1", side === "right" && "flex-row-reverse")}>
+        <div className={side === "bottom"
+          ? "pointer-events-none fixed inset-x-0 bottom-4 z-30 hidden justify-center md:flex [&>nav]:pointer-events-auto"
+          : "sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 items-center px-2 md:flex"}>
+          <Dock side={side} onSide={setSide} items={items} />
+        </div>
+        <main className={cn("min-w-0 flex-1 px-4 py-4 md:pb-10", side === "bottom" && "md:pb-28", side === "left" && "md:pl-1", side === "right" && "md:pr-1")}>
           <div key={location.pathname} className="animate-page">
             <Outlet />
           </div>

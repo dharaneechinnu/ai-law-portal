@@ -54,10 +54,10 @@ export function NotificationBell() {
   return (
     <div ref={ref} className="relative">
       <button onClick={() => setOpen(!open)} aria-label={`Notifications${count ? `, ${count} unread` : ""}`} title="Notifications"
-        className={cn("group relative grid size-9 place-items-center rounded-xl text-ink-500 transition hover:bg-ink-50 hover:text-ink-900", open && "bg-ink-50 text-ink-900")}>
-        <Bell className={cn("size-[18px] transition", count > 0 && "animate-sway text-brass-600")} />
+        className={cn("group relative grid size-10 place-items-center rounded-xl text-night-200 transition hover:bg-snow/10 hover:text-snow", open && "bg-snow/10 text-snow")}>
+        <Bell className={cn("size-[18px] transition", count > 0 && "animate-sway text-brass-300")} />
         {count > 0 && (
-          <span key={count} className="absolute right-0.5 top-0.5 grid h-4 min-w-4 animate-pop place-items-center rounded-full bg-brass-400 px-1 text-[10px] font-semibold tabular-nums text-night-950 ring-2 ring-slate-50">
+          <span key={count} className="absolute right-0.5 top-0.5 grid h-4 min-w-4 animate-pop place-items-center rounded-full bg-brass-400 px-1 text-[10px] font-semibold tabular-nums text-night-950 ring-2 ring-night-950">
             {count > 99 ? "99+" : count}
           </span>
         )}

@@ -175,3 +175,9 @@ kbd {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Navigation dock entrance, per side. */
+@keyframes dock-in-left { from { opacity: 0; transform: translateX(-28px) } to { opacity: 1; transform: none } }
+@keyframes dock-in-right { from { opacity: 0; transform: translateX(28px) } to { opacity: 1; transform: none } }
+@keyframes dock-in-bottom { from { opacity: 0; transform: translateY(28px) } to { opacity: 1; transform: none } }
+@keyframes slide-in-left { from { transform: translateX(-100%) } to { transform: none } }
