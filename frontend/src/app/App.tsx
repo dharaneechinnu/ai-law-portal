@@ -26,7 +26,7 @@ const queryClient = new QueryClient();
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   if (user?.role_name !== "admin") {
-    return <Placeholder title="Admins only" hint="Ask your firm admin if you need access to user management." />;
+    return <Placeholder title="Admins only" hint="Only your firm admin can open this page." />;
   }
   return <>{children}</>;
 }
@@ -57,7 +57,7 @@ export default function App() {
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/matters/:id" element={<MatterDetail />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings" element={<AdminOnly><SettingsPage /></AdminOnly>} />
               <Route path="/legal" element={<LegalPage />} />
               <Route path="/admin/users" element={<AdminOnly><AdminUsersPage /></AdminOnly>} />
             </Route>

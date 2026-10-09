@@ -7,7 +7,7 @@ import { Logo } from "@/components/brand/Logo";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ShortcutsSheet } from "@/components/ShortcutsSheet";
 import { cn } from "@/lib/utils";
-import { GO_KEYS, MOD, fire, typing } from "@/lib/shortcuts";
+import { MOD, fire, goKeysFor, typing } from "@/lib/shortcuts";
 import { clearTheme, useTheme } from "@/lib/theme";
 import { useAuth } from "@/features/auth/AuthContext";
 import { initials } from "@/features/admin/roles";
@@ -90,6 +90,9 @@ function ThemeToggle() {
 
 /** Ctrl/⌘+K, Ctrl/⌘+J, ?, Shift+D and "G then letter" navigation. */
 function useGlobalKeys() {
+  const { user } = useAuth();
+  const roleRef = useRef(user?.role_name);
+  roleRef.current = user?.role_name;
   const navigate = useNavigate();
   const { toggle } = useTheme();
   const pendingG = useRef(0);
@@ -103,6 +106,7 @@ function useGlobalKeys() {
       if (e.key === "?") { e.preventDefault(); fire("shortcuts"); return; }
       if (e.shiftKey && key === "d") { e.preventDefault(); toggle(); return; }
       if (e.shiftKey) return;
+      const GO_KEYS = goKeysFor(roleRef.current);
       if (pendingG.current && Date.now() - pendingG.current < 1200 && GO_KEYS[key]) {
         e.preventDefault();
         pendingG.current = 0;
@@ -160,11 +164,13 @@ export function Layout() {
           </button>
           <ThemeToggle />
           <NotificationBell />
-          <NavLink to="/settings" aria-label="Settings" title="Settings"
-            className={({ isActive }) => cn("group grid size-10 place-items-center rounded-xl text-night-200 transition hover:bg-snow/10 hover:text-snow",
-              isActive && "bg-snow/10 text-brass-300")}>
-            <Settings className="size-[18px] transition-transform duration-500 group-hover:rotate-90" />
-          </NavLink>
+          {admin && (
+            <NavLink to="/settings" aria-label="Settings" title="Settings"
+              className={({ isActive }) => cn("group grid size-10 place-items-center rounded-xl text-night-200 transition hover:bg-snow/10 hover:text-snow",
+                isActive && "bg-snow/10 text-brass-300")}>
+              <Settings className="size-[18px] transition-transform duration-500 group-hover:rotate-90" />
+            </NavLink>
+          )}
           <AvatarMenu />
         </div>
       </header>

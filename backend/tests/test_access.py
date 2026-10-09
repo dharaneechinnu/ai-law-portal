@@ -35,3 +35,17 @@ def test_bad_or_disabled_access(client, admin, make_user):
     assert client.post("/api/auth/login", json={"email": user["email"], "password": "Passw0rd!x"}).status_code in (401, 403)
     assert client.get("/api/admin/users", headers=headers(make_user("partner"))).status_code == 403
     assert client.get("/api/settings/email", headers=headers(make_user("lawyer"))).status_code == 403
+
+
+def test_only_admin_can_configure_ai_and_integrations(client, admin, make_user):
+    for role in ("partner", "lawyer", "associate", "paralegal"):
+        h = headers(make_user(role))
+        assert client.get("/api/settings/ai", headers=h).status_code == 403, role
+        assert client.put("/api/settings/ai", headers=h, json={"chat": {"kind": "openai", "fields": {}, "model": "m"},
+                                                                "embedding": {"same_as_chat": True, "model": "e"}}).status_code == 403, role
+        assert client.post("/api/settings/ai/test", headers=h).status_code == 403, role
+        assert client.get("/api/settings/ai/routes", headers=h).status_code == 403, role
+        assert client.get("/api/settings/legal", headers=h).status_code == 403, role
+        assert client.get("/api/settings/firm", headers=h).status_code == 403, role
+        assert client.get("/api/agents/controls", headers=h).status_code == 403, role
+    assert client.get("/api/settings/ai", headers=headers(admin)).status_code == 200

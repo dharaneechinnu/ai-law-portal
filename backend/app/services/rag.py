@@ -38,7 +38,7 @@ def retrieve(db: Session, matter_id: uuid.UUID, query: str, qvec: list[float]) -
 
 async def ask_matter(db: Session, matter_id: uuid.UUID, question: str) -> AskOut:
     embedder = ai_registry.get_embedder(db)
-    qvec = (await embedder.embed([question]))[0]
+    qvec = await embedder.embed_query(question)
     chunks = retrieve(db, matter_id, question, qvec)
     if not chunks:
         return AskOut(answer="No indexed documents were found for this matter. Upload and process a document first.",

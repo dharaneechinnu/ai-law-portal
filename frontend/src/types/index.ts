@@ -88,15 +88,59 @@ export interface AskResult {
   citations: Citation[];
 }
 
+export interface AIField {
+  key: string;
+  label: string;
+  type: "secret" | "text" | "url";
+  required: boolean;
+  default?: string | null;
+  placeholder?: string | null;
+  help?: string | null;
+}
+
+/** One entry of the provider catalog (GET /settings/ai/providers). */
+export interface AIProviderInfo {
+  id: string;
+  name: string;
+  group: string;
+  base_url?: string | null;
+  blurb: string;
+  key_url?: string | null;
+  fields: AIField[];
+  chat: boolean;
+  embeddings: boolean;
+  tools: boolean;
+  dimensions: boolean;
+  list_models: boolean;
+  chat_models: string[];
+  embedding_models: string[];
+  pricing: "free" | "free_tier" | "paid";
+  pricing_note?: string | null;
+  guide: string[];
+}
+
+export interface AIConnection {
+  kind: string;
+  name: string;
+  fields: Record<string, string | null>;
+  saved_secrets: string[];
+  model: string;
+}
+
 export interface AIConfig {
   configured: boolean;
-  kind?: string;
-  base_url?: string;
-  chat_model?: string;
-  embedding_model?: string;
-  embedding_base_url?: string;
-  has_api_key: boolean;
-  has_embedding_api_key: boolean;
+  chat?: AIConnection | null;
+  embedding?: (AIConnection & { same_as_chat: boolean }) | null;
+  embedding_dim: number;
+}
+
+export interface AITestResult {
+  chat_ok: boolean;
+  chat_error?: string | null;
+  embedding_ok: boolean;
+  embedding_error?: string | null;
+  embedding_dim?: number | null;
+  expected_dim: number;
 }
 
 export type UserStatus = "active" | "invited" | "disabled";

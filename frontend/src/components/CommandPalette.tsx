@@ -7,7 +7,8 @@ import {
 import { api } from "@/services/api";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/page";
-import { GO_KEYS, MOD, fire, useCommand } from "@/lib/shortcuts";
+import { MOD, fire, goKeysFor, useCommand } from "@/lib/shortcuts";
+import { useAuth } from "@/features/auth/AuthContext";
 import { useTheme } from "@/lib/theme";
 import type { Client, Matter, Person, Task } from "@/types";
 
@@ -29,6 +30,7 @@ const matches = (q: string, ...fields: (string | null | undefined)[]) => {
 
 /** Ctrl/⌘+K: jump to any page, record or action. Records load once when it opens and are filtered here. */
 export function CommandPalette() {
+  const role = useAuth().user?.role_name;
   const nav = useNavigate();
   const { resolved, toggle } = useTheme();
   const [open, setOpen] = useState(false);
@@ -57,7 +59,7 @@ export function CommandPalette() {
         keys: ["Shift", "D"], run: () => { close(); toggle(); } },
       { id: "a-keys", group: "Actions", label: "Keyboard shortcuts", icon: Keyboard, keys: ["?"], run: () => { close(); fire("shortcuts"); } },
     ];
-    const pages: Item[] = Object.entries(GO_KEYS).map(([k, [to, label]]) => ({
+    const pages: Item[] = Object.entries(goKeysFor(role)).map(([k, [to, label]]) => ({
       id: `p-${to}`, group: "Go to", label, icon: ArrowRight, keys: ["G", k.toUpperCase()], run: go(to),
     }));
     const base = [...actions, ...pages].filter((i) => !q || matches(q, i.label));

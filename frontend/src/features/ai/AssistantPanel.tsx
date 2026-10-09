@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ban, Bot, CheckCircle2, Clock, Send, Sparkles, X } from "lucide-react";
 import { api, errorMessage } from "@/services/api";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/features/auth/AuthContext";
 import { MOD, useCommand } from "@/lib/shortcuts";
 import type { AgentInfo, ChatReply, ChatStep } from "@/types";
 
@@ -39,6 +40,7 @@ function Step({ s }: { s: ChatStep }) {
 
 /** Floating assistant. Agents run on the server; each action they ask for goes through the firm's AI rules. */
 export function AssistantPanel() {
+  const isAdmin = useAuth().user?.role_name === "admin";
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [agent, setAgent] = useState("task");
@@ -134,8 +136,8 @@ export function AssistantPanel() {
             )}
             {send.isError && (
               <div className="animate-fade-in rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">
-                {errorMessage(send.error)}
-                {notConfigured && <> <Link to="/settings" className="underline" onClick={() => setOpen(false)}>Open Settings</Link></>}
+                {notConfigured && !isAdmin ? "The AI isn't set up yet. Ask your firm admin to add an AI model." : errorMessage(send.error)}
+                {notConfigured && isAdmin && <> <Link to="/settings" className="underline" onClick={() => setOpen(false)}>Open Settings</Link></>}
               </div>
             )}
             <div ref={end} />

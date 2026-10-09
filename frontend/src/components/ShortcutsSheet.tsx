@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Keyboard, X } from "lucide-react";
-import { GO_KEYS, MOD, useCommand } from "@/lib/shortcuts";
+import { MOD, goKeysFor, useCommand } from "@/lib/shortcuts";
+import { useAuth } from "@/features/auth/AuthContext";
 
 const GENERAL: [string[], string][] = [
   [[MOD, "K"], "Search and commands"],
@@ -12,6 +13,7 @@ const GENERAL: [string[], string][] = [
 
 /** "?" opens the list of shortcuts. */
 export function ShortcutsSheet() {
+  const role = useAuth().user?.role_name;
   const [open, setOpen] = useState(false);
   useCommand("shortcuts", useCallback(() => setOpen((o) => !o), []));
   useEffect(() => {
@@ -50,7 +52,7 @@ export function ShortcutsSheet() {
           </section>
           <section>
             <h3 className="mb-1 mt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400 sm:mt-0">Go to</h3>
-            {Object.entries(GO_KEYS).map(([k, [, l]]) => <Row key={k} keys={["G", k.toUpperCase()]} label={l} />)}
+            {Object.entries(goKeysFor(role)).map(([k, [, l]]) => <Row key={k} keys={["G", k.toUpperCase()]} label={l} />)}
           </section>
         </div>
       </div>

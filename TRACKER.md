@@ -118,8 +118,11 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 
 ## Sprint 5 — Analytics + Settings + Providers + Audit
 
-- [~] **Settings: AI providers** (basic single-provider version delivered in Sprint 1) — Admin picks provider (local OpenAI-compatible, OpenAI, Anthropic, Google, Azure, custom), base URL, model, API key.
-      Keys are encrypted at rest and never returned to the browser.
+- [x] **Settings: AI providers** — Admin-only guided setup (Settings > AI providers): pick a provider, fill only its fields,
+      load models live, test before saving. 20 providers from `services/ai_catalog.py`: OpenAI, Anthropic, Google Gemini,
+      Azure OpenAI, AWS Bedrock, Mistral, Groq, DeepSeek, xAI, OpenRouter, Together, Fireworks, Cohere, Perplexity,
+      NVIDIA, Hugging Face, Ollama, LM Studio, vLLM, any OpenAI-compatible server. Free / Free tier / Paid labels and setup steps
+      per provider. Embeddings can come from a second provider. Keys encrypted, never returned; changes audited.
 - [x] **Model registry & routing** — Map tasks (summary, research, email, classification, embeddings, rerank) to models.
       Changing a route needs no code change.
       Built: `ai_registry.get_llm(db, task)` with fallback to the default chat model; jobs `qa`, `summary`, `comparison`, `agents`;

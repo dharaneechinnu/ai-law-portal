@@ -178,25 +178,58 @@ class AskOut(BaseModel):
     citations: list[Citation]
 
 
+class AIConnectionIn(BaseModel):
+    """One provider connection. `fields` follows the provider's catalog entry (server address, API key, region...).
+    Secret fields are write-only: leave them empty to keep the saved value."""
+    kind: str
+    fields: dict[str, str | None] = {}
+    model: str
+
+
+class AIEmbeddingIn(BaseModel):
+    same_as_chat: bool = True
+    kind: str | None = None
+    fields: dict[str, str | None] = {}
+    model: str
+
+
 class AIConfigIn(BaseModel):
-    kind: str = "openai_compatible"  # openai_compatible/openai/anthropic/google/azure_openai
-    base_url: str | None = None
-    api_key: str | None = None  # write-only; omit to keep the stored key
-    chat_model: str
-    embedding_model: str
-    embedding_base_url: str | None = None  # defaults to base_url
-    embedding_api_key: str | None = None
+    chat: AIConnectionIn
+    embedding: AIEmbeddingIn
+
+
+class AIConnectionOut(BaseModel):
+    kind: str
+    name: str
+    fields: dict[str, str | None] = {}  # non-secret values only
+    saved_secrets: list[str] = []  # secret fields that have a stored value
+    model: str
+
+
+class AIEmbeddingOut(AIConnectionOut):
+    same_as_chat: bool = True
 
 
 class AIConfigOut(BaseModel):
     configured: bool
-    kind: str | None = None
-    base_url: str | None = None
-    chat_model: str | None = None
-    embedding_model: str | None = None
-    embedding_base_url: str | None = None
-    has_api_key: bool = False
-    has_embedding_api_key: bool = False
+    chat: AIConnectionOut | None = None
+    embedding: AIEmbeddingOut | None = None
+    embedding_dim: int
+
+
+class AIModelsIn(BaseModel):
+    kind: str
+    fields: dict[str, str | None] = {}
+    use_saved: str | None = None  # "chat" / "embedding": fill empty secrets from that saved connection
+
+
+class AITestOut(BaseModel):
+    chat_ok: bool
+    chat_error: str | None = None
+    embedding_ok: bool
+    embedding_error: str | None = None
+    embedding_dim: int | None = None
+    expected_dim: int
 
 
 class UserBrief(ORM):
