@@ -20,7 +20,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Firm setup & user access (admin)** — First-run `/setup` registers the firm and its first admin (refused once any user exists).
       Admin "Team & access" panel creates logins (one-time invite link valid 7 days, or temporary password), changes roles,
       disables/enables access and issues reset links. Admins cannot remove their own admin access; the firm keeps one active admin.
-      Invite tokens are stored hashed. Links are copied by the admin; email delivery waits for the email integration.
+      Invite tokens are stored hashed. Links are emailed when Settings > Email is set up, and can always be copied.
       Passwords are hashed server-side.
 - [x] **Account profile** — Name, role, designation, practice area, time zone, working hours, notification prefs, briefing time, AI prefs.
       Editable by the user; role changes are admin-only.
@@ -33,7 +33,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Clients** — Create/list/edit clients with contact details.
       Linked to matters.
 - [x] **Matters** — Full matter record (case no., court, jurisdiction, practice area, lawyer, status, priority, dates, legal issues).
-      Includes matter members (add/remove, timeline-logged) and the 10-tab workspace UI; Tasks, Hearings, Legal Intelligence, Communications and AI Activity tabs are placeholders until Sprints 2-4.
+      Includes matter members (add/remove, timeline-logged) and the 10-tab workspace UI; Tasks, Hearings, Legal Intelligence and AI Activity tabs are live; Communications is still a placeholder.
 - [x] **Case timeline** — Chronological, DB-backed event feed per matter (created, doc uploaded, task done, judgment detected, AI approved…).
       Written by services, never by the LLM.
 - [x] **Document upload & extraction** — Upload PDF/DOCX/TXT, store the file locally, keep metadata in Postgres, extract text per page.
@@ -57,26 +57,26 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Case comparison** — "My case vs judgment" report: same, different, potential impact, recommended review.
       Prompted to never predict outcomes; labelled as analysis, not legal advice.
 - [x] **Legal alerts** — Matches at or above the firm's alert threshold (default 0.6) are alerts on the Legal Intelligence page and the matter's
-      Legal Intelligence tab, and are logged to the matter timeline. Lawyers mark them reviewed/dismissed. Dashboard card waits for Sprint 3.
+      Legal Intelligence tab, and are logged to the matter timeline. Lawyers mark them reviewed/dismissed. Also a dashboard card.
 
 ## Sprint 3 — Tasks + Calendar + Notifications
 
 - [x] **Tasks** — CRUD with assignee, due date, priority, matter link, dependencies, and archive instead of hard delete.
       Task events feed the matter timeline. `/api/tasks` (list/create/patch; no delete), `services/tasks.py` (access rule, dependency
-      loop check, "finish dependencies first"); `/tasks` page (Mine/Everyone) and the matter Tasks tab. Not yet run against a live DB.
+      loop check, "finish dependencies first"); `/tasks` page (Mine/Everyone) and the matter Tasks tab. Verified end to end.
 - [x] **Calendar & hearings** — Calendar events and hearings per matter/user behind `CalendarProvider`.
       Ships with a local mock provider; Google/Outlook slot in later. `LocalCalendarProvider`, `/api/calendar` (range query,
       create/edit/cancel events; organiser-only edits), `/api/hearings` (list/create/update; keeps `matters.next_hearing` current,
-      logs to timeline). `/calendar` week and month views (click a day to open its week) and the matter Hearings tab. Not yet run against a live DB.
+      logs to timeline). `/calendar` week and month views (click a day to open its week) and the matter Hearings tab. Verified end to end.
 - [x] **People & availability** — Lawyer list/create/edit/view with practice areas, workload, and free/busy from calendar plus working hours.
       Exposed as a service so agents can ask "is X free?".
       Built: `/people` directory (search, practice-area filter, live free/busy/off status, workload) with profile drawer;
       `services/people.py` (`is_free`, `busy_slots`, default Mon–Fri 09:00–18:00) and `/api/people/{id}/availability`.
-      Colleagues see "Busy", not meeting titles. Create/edit stays in Team & access. Not yet run against a live DB.
+      Colleagues see "Busy", not meeting titles. Create/edit stays in Team & access. Verified end to end.
 - [~] **Dashboard action center** — "What do I need to do today": due/overdue tasks, hearings, meetings, follow-ups, docs needing action, AI alerts.
       No decorative charts. Built: `/api/dashboard` (counts, today, overdue, legal alerts, active matters; filtered by case access) and a
-      drag-and-drop dashboard (reorder, resize, hide; layout saved per user in `users.dashboard_layout`). Pending: meetings, follow-ups,
-      documents needing action, approvals and briefing cards; task and hearing data appear once those features exist.
+      drag-and-drop dashboard (reorder, resize, hide; layout saved per user in `users.dashboard_layout`). Briefing card done. Pending: meetings,
+      follow-ups, documents needing action and approvals cards.
 - [x] **Daily briefing** — Per-user configurable time; a scheduler triggers the Daily Briefing agent and stores the result.
       Time is read from the user's profile, never hard-coded.
       Built: `briefings` table (one per user per local day), `services/briefing.py` (facts from the dashboard service + calendar;
@@ -86,7 +86,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       De-duplicated and actionable to avoid spam.
       Built: `services/notifications.py` (`notify` with per-user dedupe key and Account preferences), reminders every 5 min
       (hearings 24 h ahead, meetings 15 min ahead, tasks due in 24 h, newly overdue), hooks on task assignment, meeting invites,
-      legal alerts and briefing ready; `/api/notifications`; sidebar bell with badge and panel. Approval requests wait for Sprint 4.
+      legal alerts, briefing ready and approval requests; `/api/notifications`; sidebar bell with badge and panel.
 
 ## Sprint 4 — LangGraph + Agent Tools + Policy + Approval
 
