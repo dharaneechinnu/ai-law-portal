@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-/** Right-hand slide-over panel with a dimmed backdrop. */
+/** Right-hand slide-over panel with a dimmed backdrop. Portalled so page transitions can't offset it. */
 export function Drawer({ title, onClose, children, footer }: {
   title: string; onClose: () => void; children: ReactNode; footer?: ReactNode;
 }) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-40 flex justify-end">
       <div className="absolute inset-0 animate-fade-in bg-ink-950/30 backdrop-blur-[2px]" onClick={onClose} />
       <aside role="dialog" aria-label={title} className="relative flex h-full w-full max-w-md animate-slide-in flex-col bg-white shadow-2xl">
@@ -18,7 +19,8 @@ export function Drawer({ title, onClose, children, footer }: {
         <div className="flex-1 overflow-y-auto p-5">{children}</div>
         {footer && <footer className="flex items-center gap-2 border-t border-ink-50 px-5 py-4">{footer}</footer>}
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -147,7 +147,7 @@ export function DashboardPage() {
             {data ? (attention ? `${attention} ${attention === 1 ? "item needs" : "items need"} you today${counts ? `: ${counts}.` : "."}` : "You're all clear today.") : "\u00a0"}
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <Link to="/matters" className="flex h-11 items-center gap-2 rounded-xl bg-gradient-to-br from-brass-300 to-brass-500 px-4 text-sm font-semibold text-night-950 shadow-lg shadow-brass-500/25 transition hover:-translate-y-0.5 hover:brightness-105">
+            <Link to="/matters?new=1" className="flex h-11 items-center gap-2 rounded-xl bg-gradient-to-br from-brass-300 to-brass-500 px-4 text-sm font-semibold text-night-950 shadow-lg shadow-brass-500/25 transition hover:-translate-y-0.5 hover:brightness-105">
               <Plus className="size-4" /> New matter
             </Link>
             <div className="group relative">

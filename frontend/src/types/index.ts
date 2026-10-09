@@ -55,6 +55,7 @@ export interface Matter {
   assigned_lawyer_id?: string | null;
   legal_issues: string[];
   restricted: boolean;
+  next_hearing?: string | null;
   created_at: string;
 }
 
