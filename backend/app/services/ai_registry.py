@@ -108,7 +108,8 @@ def build_embedder(c: Conn, model: str) -> EmbeddingProvider:
         from app.providers.azure_openai import AzureOpenAIEmbeddingsProvider
         return AzureOpenAIEmbeddingsProvider(c.get("endpoint"), c.get("api_key"), c.get("api_version"), model, dims)
     from app.providers.openai_compatible import OpenAICompatibleEmbeddings
-    return OpenAICompatibleEmbeddings(c.get("base_url") or p["base_url"], c.get("api_key"), model, dims)
+    return OpenAICompatibleEmbeddings(c.get("base_url") or p["base_url"], c.get("api_key"), model, dims,
+                                      asymmetric=p.get("asymmetric_embeddings", False))
 
 
 async def list_models(c: Conn) -> list[str]:

@@ -21,6 +21,10 @@ class EmbeddingProvider(ABC):
     @abstractmethod
     async def embed(self, texts: list[str]) -> list[list[float]]: ...
 
+    async def embed_query(self, text: str) -> list[float]:
+        """Vector for a search question. Models that embed questions and documents differently override this."""
+        return (await self.embed([text]))[0]
+
 
 class RerankerProvider(ABC):
     @abstractmethod

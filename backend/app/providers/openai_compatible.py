@@ -30,11 +30,16 @@ class LangChainLLM(LLMProvider):
 
 
 class LangChainEmbeddings(EmbeddingProvider):
-    def __init__(self, client: Any):
-        self.client = client
+    def __init__(self, client: Any, query_client: Any = None):
+        self.client, self.query_client = client, query_client
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
         return await self.client.aembed_documents(texts)
+
+    async def embed_query(self, text: str) -> list[float]:
+        if self.query_client is None:
+            return await super().embed_query(text)
+        return (await self.query_client.aembed_documents([text]))[0]
 
 
 class OpenAICompatibleLLM(LangChainLLM):
@@ -44,14 +49,19 @@ class OpenAICompatibleLLM(LangChainLLM):
 
 
 class OpenAICompatibleEmbeddings(LangChainEmbeddings):
-    def __init__(self, base_url: str | None, api_key: str | None, model: str, dimensions: int | None = None):
-        super().__init__(OpenAIEmbeddings(
-            base_url=base_url or None,
-            api_key=api_key or "not-needed",
-            model=model,
-            dimensions=dimensions,  # only sent for models that can shorten their vectors (OpenAI 3-series, Gemini)
-            check_embedding_ctx_length=False,  # non-OpenAI servers don't use OpenAI's tokenizer
-        ))
+    def __init__(self, base_url: str | None, api_key: str | None, model: str, dimensions: int | None = None,
+                 asymmetric: bool = False):
+        """`asymmetric`: the server wants input_type "passage" for documents and "query" for questions (NVIDIA NIM)."""
+        def make(input_type: str | None) -> OpenAIEmbeddings:
+            return OpenAIEmbeddings(
+                base_url=base_url or None,
+                api_key=api_key or "not-needed",
+                model=model,
+                dimensions=dimensions,  # only sent for models that can shorten their vectors (OpenAI 3-series, Gemini)
+                check_embedding_ctx_length=False,  # non-OpenAI servers don't use OpenAI's tokenizer
+                model_kwargs={"extra_body": {"input_type": input_type, "truncate": "END"}} if input_type else {},
+            )
+        super().__init__(make("passage" if asymmetric else None), make("query") if asymmetric else None)
 
 
 async def list_models(base_url: str, api_key: str | None) -> list[str]:
