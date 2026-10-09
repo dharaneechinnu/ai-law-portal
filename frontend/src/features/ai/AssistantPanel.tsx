@@ -84,13 +84,21 @@ export function AssistantPanel() {
 
       {open && (
         <section role="dialog" aria-label="Assistant"
-          className="fixed bottom-24 right-6 z-40 flex h-[34rem] max-h-[calc(100vh-8rem)] w-[24rem] max-w-[calc(100vw-2rem)] origin-bottom-right animate-pop flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-2xl">
-          <header className="border-b border-ink-50 px-4 py-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-ink-900"><Bot className="size-4 text-brass-600" /> Assistant</div>
-            <div className="mt-2 flex flex-wrap gap-1">
+          className="fixed bottom-24 right-6 z-40 flex h-[36rem] max-h-[calc(100vh-8rem)] w-[25rem] max-w-[calc(100vw-2rem)] origin-bottom-right animate-pop flex-col overflow-hidden rounded-3xl border border-ink-100 bg-white shadow-[0_30px_60px_rgba(7,13,32,0.3)]">
+          <header className="relative isolate overflow-hidden bg-gradient-to-br from-night-800 via-night-900 to-night-950 px-4 pb-3 pt-4 text-snow">
+            <span className="pointer-events-none absolute -right-10 -top-16 -z-10 size-40 rounded-full bg-brass-300/20 blur-2xl" />
+            <div className="flex items-center gap-2.5">
+              <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-brass-300 to-brass-500 text-night-950"><Bot className="size-[18px]" /></span>
+              <span>
+                <span className="block font-serif text-lg font-bold leading-tight">Ask AI</span>
+                <span className="block text-[11px] text-night-300">Changes wait for your approval · {MOD}+J</span>
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="Agent">
               {agents.map((a) => (
-                <button key={a.key} onClick={() => switchAgent(a.key)}
-                  className={cn("rounded-full px-2.5 py-1 text-xs transition-all", agent === a.key ? "bg-ink-900 text-white shadow-sm" : "bg-ink-50 text-ink-500 hover:bg-ink-100")}>
+                <button key={a.key} onClick={() => switchAgent(a.key)} aria-pressed={agent === a.key}
+                  className={cn("rounded-full px-2.5 py-1 text-xs font-semibold transition-all",
+                    agent === a.key ? "bg-brass-300 text-night-950 shadow-sm" : "bg-snow/10 text-night-200 hover:bg-snow/15 hover:text-snow")}>
                   {a.name}
                 </button>
               ))}
@@ -99,11 +107,12 @@ export function AssistantPanel() {
 
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {!msgs.length && (
-              <div className="animate-fade-in space-y-2 pt-6 text-center">
-                <p className="text-sm text-ink-400">Ask in plain words. Changes wait for your approval.</p>
+              <div className="flex animate-fade-in flex-col items-center gap-3 pt-6 text-center">
+                <span className="grid size-14 animate-float place-items-center rounded-2xl bg-brass-100 text-brass-600"><Sparkles className="size-6" /></span>
+                <p className="max-w-[16rem] text-sm text-ink-500">Ask in plain words. Anything that changes your data waits for your approval.</p>
                 {EXAMPLES[agent] && (
                   <button onClick={() => send.mutate(EXAMPLES[agent])}
-                    className="rounded-full border border-dashed border-ink-200 px-3 py-1.5 text-xs text-ink-600 transition hover:border-brass-400 hover:bg-brass-100/40">
+                    className="rounded-full border border-ink-100 px-3 py-1.5 text-xs font-medium text-ink-600 transition hover:-translate-y-0.5 hover:border-brass-300 hover:text-brass-700">
                     “{EXAMPLES[agent]}”
                   </button>
                 )}
@@ -119,8 +128,8 @@ export function AssistantPanel() {
               </div>
             ))}
             {send.isPending && (
-              <div className="flex gap-1 px-2" aria-label="Thinking">
-                {[0, 1, 2].map((i) => <span key={i} className="size-2 animate-bounce rounded-full bg-ink-300" style={{ animationDelay: `${i * 120}ms` }} />)}
+              <div className="flex w-fit gap-1 rounded-2xl rounded-bl-md bg-ink-50 px-3.5 py-3" aria-label="Thinking">
+                {[0, 1, 2].map((i) => <span key={i} className="size-1.5 animate-bounce rounded-full bg-ink-400" style={{ animationDelay: `${i * 120}ms` }} />)}
               </div>
             )}
             {send.isError && (
@@ -137,7 +146,7 @@ export function AssistantPanel() {
             <input ref={input} value={text} onChange={(e) => setText(e.target.value)} placeholder="Message" aria-label="Message"
               className="h-10 flex-1 rounded-xl border border-ink-100 px-3 text-sm outline-none transition focus:border-brass-400 focus:ring-4 focus:ring-brass-300/25" />
             <button disabled={!text.trim() || send.isPending} aria-label="Send"
-              className="grid size-10 place-items-center rounded-xl bg-ink-900 text-white transition hover:bg-ink-700 disabled:opacity-40">
+              className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-brass-300 to-brass-500 text-night-950 shadow-md shadow-brass-500/25 transition hover:brightness-105 disabled:opacity-40 disabled:shadow-none">
               <Send className="size-4" />
             </button>
           </form>
