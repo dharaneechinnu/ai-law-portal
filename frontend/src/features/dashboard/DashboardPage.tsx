@@ -7,8 +7,9 @@ import {
   SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, EyeOff, GripVertical, Maximize2, Minimize2, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Check, Eye, EyeOff, GripVertical, Maximize2, Minimize2, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { DeskSpot } from "@/components/brand/Spots";
 import { useAuth } from "@/features/auth/AuthContext";
 import { api } from "@/services/api";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ function Card({
     <section ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "relative animate-fade-up rounded-2xl border bg-white/80 p-5 shadow-sm backdrop-blur transition-[box-shadow,border-color] duration-200",
+        "relative animate-fade-up rounded-[20px] border bg-white p-5 shadow-[0_1px_2px_rgba(7,13,32,0.04)] transition-[box-shadow,border-color] duration-200",
         w.size === "full" ? "md:col-span-2" : "md:col-span-1",
         editing ? "border-dashed border-brass-300" : "border-ink-100",
         isDragging && "z-10 scale-[1.02] border-brass-400 shadow-xl",
@@ -51,7 +52,7 @@ function Card({
             <GripVertical className="size-4" />
           </button>
         )}
-        <h2 className="flex-1 text-sm font-semibold tracking-wide text-ink-700">{meta.title}</h2>
+        <h2 className="flex-1 font-serif text-lg font-bold text-ink-900">{meta.title}</h2>
         {editing && (
           <div className="flex animate-fade-in gap-0.5">
             <button onClick={onSize} title={w.size === "full" ? "Make narrow" : "Make wide"}
@@ -74,7 +75,7 @@ function Skeleton() {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {[2, 1, 1, 1, 1].map((span, i) => (
-        <div key={i} className={cn("h-40 animate-pulse rounded-2xl bg-ink-100/60", span === 2 && "md:col-span-2 h-28")} />
+        <div key={i} className={cn("h-40 animate-pulse rounded-[20px] bg-ink-100/60", span === 2 && "md:col-span-2 h-28")} />
       ))}
     </div>
   );
@@ -86,6 +87,10 @@ export function DashboardPage() {
   const [editing, setEditing] = useState(false);
   const saveTimer = useRef<number>();
   const { data, isLoading, isError } = useQuery({ queryKey: ["dashboard"], queryFn: () => api<Dashboard>("/dashboard") });
+  const { data: pending = 0 } = useQuery({
+    queryKey: ["approvals", "count"],
+    queryFn: () => api<{ pending: number }>("/approvals/count").then((r) => r.pending),
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -120,31 +125,54 @@ export function DashboardPage() {
   const patch = (id: WidgetId, p: Partial<WidgetLayout>) => persist(layout.map((w) => (w.id === id ? { ...w, ...p } : w)));
 
   const first = user?.name.split(" ")[0] ?? "";
-  const attention = data ? data.today.length + data.overdue.length + data.stats.new_alerts : 0;
+  const attention = data ? data.today.length + data.overdue.length + data.stats.new_alerts + pending : 0;
+
+  const counts = data && [
+    pending && `${pending} ${pending === 1 ? "approval" : "approvals"} waiting`,
+    data.stats.hearings_week && `${data.stats.hearings_week} ${data.stats.hearings_week === 1 ? "hearing" : "hearings"} this week`,
+    data.stats.overdue_tasks && `${data.stats.overdue_tasks} overdue ${data.stats.overdue_tasks === 1 ? "task" : "tasks"}`,
+    data.stats.new_alerts && `${data.stats.new_alerts} new legal ${data.stats.new_alerts === 1 ? "alert" : "alerts"}`,
+  ].filter(Boolean).join(" · ");
+  const today = new Date().toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 animate-fade-up">
-        <div>
-          <h1 className="font-serif text-3xl text-ink-900">{greeting()}, {first}</h1>
-          <p className="mt-1 text-sm text-ink-400">
-            {data ? (attention ? `${attention} ${attention === 1 ? "item needs" : "items need"} you today.` : "You're all clear today.") : " "}
+    <div className="flex flex-col gap-[18px]">
+      <section className="relative isolate flex animate-fade-up flex-wrap items-center justify-between gap-6 overflow-hidden rounded-3xl bg-gradient-to-br from-night-800 via-night-900 to-night-950 px-6 py-7 text-snow shadow-[0_24px_48px_rgba(7,13,32,0.18)] md:px-9">
+        <span className="pointer-events-none absolute -left-24 -top-28 -z-10 size-80 animate-drift rounded-full bg-brass-300/20 blur-3xl" />
+        <span className="pointer-events-none absolute -bottom-32 right-1/4 -z-10 size-96 animate-drift rounded-full bg-night-500/40 blur-3xl" style={{ animationDelay: "-6s" }} />
+        <div className="min-w-0 max-w-xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-300">{today}</p>
+          <h1 className="mt-2 font-serif text-3xl font-bold leading-tight md:text-4xl">{greeting()}, {first}</h1>
+          <p className="mt-2 text-sm text-night-200 md:text-base">
+            {data ? (attention ? `${attention} ${attention === 1 ? "item needs" : "items need"} you today${counts ? `: ${counts}.` : "."}` : "You're all clear today.") : "\u00a0"}
           </p>
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <Link to="/matters" className="flex h-11 items-center gap-2 rounded-xl bg-gradient-to-br from-brass-300 to-brass-500 px-4 text-sm font-semibold text-night-950 shadow-lg shadow-brass-500/25 transition hover:-translate-y-0.5 hover:brightness-105">
+              <Plus className="size-4" /> New matter
+            </Link>
+            <div className="group relative">
+              <button onClick={() => setEditing(!editing)} aria-label={editing ? "Done customizing" : "Customize dashboard"} aria-pressed={editing}
+                className={cn("grid size-11 place-items-center rounded-xl ring-1 transition",
+                  editing ? "bg-snow text-night-950 ring-snow" : "bg-snow/10 text-snow ring-snow/15 hover:bg-snow/15")}>
+                {editing ? <Check className="size-[18px] animate-pop" /> : <SlidersHorizontal className="size-[18px]" />}
+              </button>
+              <span role="tooltip" className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-20 hidden -translate-x-1/2 animate-fade-in whitespace-nowrap rounded-lg bg-night-950 px-2.5 py-1.5 text-xs font-medium text-snow shadow-xl ring-1 ring-snow/10 group-hover:block group-focus-within:block">
+                {editing ? "Done customizing" : "Customize dashboard"}
+              </span>
+            </div>
+            {editing && (
+              <button onClick={() => persist(DEFAULT_LAYOUT)}
+                className="flex h-11 animate-fade-in items-center gap-2 rounded-xl px-3 text-sm font-medium text-night-200 transition hover:bg-snow/10 hover:text-snow">
+                <RotateCcw className="size-4" /> Reset layout
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
-          {editing && (
-            <Button variant="ghost" size="sm" className="animate-fade-in" onClick={() => persist(DEFAULT_LAYOUT)}>
-              <RotateCcw className="size-4" /> Reset
-            </Button>
-          )}
-          <Button variant={editing ? "default" : "outline"} size="sm" onClick={() => setEditing(!editing)}>
-            <SlidersHorizontal className="size-4" /> {editing ? "Done" : "Customize"}
-          </Button>
-        </div>
-      </div>
+        <DeskSpot className="hidden h-auto w-72 shrink-0 sm:block lg:w-80" />
+      </section>
 
       {editing && (
-        <p className="mb-4 animate-fade-in rounded-lg bg-brass-100/60 px-3 py-2 text-xs text-brass-700">
+        <p className="animate-fade-in rounded-xl bg-brass-100/60 px-3 py-2 text-xs font-medium text-brass-700">
           Drag to reorder. Use the icons to resize or hide.
         </p>
       )}
@@ -166,7 +194,7 @@ export function DashboardPage() {
       )}
 
       {editing && hidden.length > 0 && (
-        <div className="mt-6 animate-fade-up">
+        <div className="animate-fade-up">
           <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">
             <Eye className="size-3.5" /> Hidden
           </div>
