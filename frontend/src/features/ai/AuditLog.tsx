@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, ChevronDown, History, Search, User as UserIcon } from "lucide-react";
+import { Bot, ChevronDown, Lock, Search, User as UserIcon } from "lucide-react";
+import { EmptyState } from "@/components/ui/page";
 import { api } from "@/services/api";
 import { cn } from "@/lib/utils";
 import type { AuditEntry } from "@/types";
@@ -9,7 +10,7 @@ const DECISION_TONE: Record<string, string> = {
   ALLOWED: "bg-emerald-50 text-emerald-700", APPROVAL_REQUIRED: "bg-brass-100 text-brass-700", DISABLED: "bg-red-50 text-red-600",
 };
 const DECISION_LABEL: Record<string, string> = { ALLOWED: "Allowed", APPROVAL_REQUIRED: "Ask first", DISABLED: "Blocked" };
-const control = "h-9 rounded-lg border border-ink-100 bg-white px-2.5 text-sm text-ink-700 outline-none transition focus:border-brass-400";
+const control = "h-10 rounded-xl border border-ink-100 bg-white px-3 text-sm text-ink-700 outline-none transition focus:border-brass-400 focus:ring-4 focus:ring-brass-300/25";
 
 const human = (action: string) => action.toLowerCase().replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 
@@ -33,8 +34,8 @@ function Row({ e, i }: { e: AuditEntry; i: number }) {
         {e.executed !== null && e.executed !== undefined && (
           <span className={cn("shrink-0 text-[11px]", e.executed ? "text-emerald-600" : "text-ink-300")}>{e.executed ? "Ran" : "Not run"}</span>
         )}
-        <span className="w-28 shrink-0 text-right text-xs tabular-nums text-ink-400">
-          {new Date(e.occurred_at).toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+        <span className="w-16 shrink-0 text-right text-xs tabular-nums text-ink-400">
+          {new Date(e.occurred_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
         </span>
         <ChevronDown className={cn("size-4 shrink-0 text-ink-300 transition-transform", !hasDetail && "invisible", open && "rotate-180")} />
       </button>
@@ -61,8 +62,24 @@ export function AuditLog({ matterId }: { matterId?: string }) {
   const path = matterId ? `/audit/matters/${matterId}?${params}` : `/audit?${params}`;
   const { data = [], isLoading } = useQuery({ queryKey: ["audit", matterId ?? "", params.toString()], queryFn: () => api<AuditEntry[]>(path) });
 
+  const dayOf = (iso: string) => new Date(iso).toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" });
+  const days: [string, AuditEntry[]][] = [];
+  for (const e of data) {
+    const d = dayOf(e.occurred_at);
+    if (days.at(-1)?.[0] === d) days.at(-1)![1].push(e); else days.push([d, [e]]);
+  }
+
   return (
     <div>
+      {!matterId && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="font-serif text-xl font-bold text-ink-900">Audit log</h2>
+            <p className="text-sm text-ink-500">Every AI request, decision and approval, and every change to the AI rules.</p>
+          </div>
+          <span className="flex items-center gap-1.5 rounded-full bg-ink-50 px-3 py-1 text-xs font-semibold text-ink-600"><Lock className="size-3.5" /> Append-only</span>
+        </div>
+      )}
       <div className="mb-3 flex flex-wrap gap-2">
         <div className="relative min-w-48 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-300" />
@@ -81,14 +98,17 @@ export function AuditLog({ matterId }: { matterId?: string }) {
         </select>
         <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={control} aria-label="Since" />
       </div>
-      <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
-        {isLoading && <div className="m-3 h-24 animate-pulse rounded-xl bg-ink-50" />}
-        {!isLoading && !data.length && (
-          <div className="flex animate-fade-in flex-col items-center gap-2 py-12 text-ink-300">
-            <History className="size-6" /><span className="text-sm">No activity yet.</span>
-          </div>
-        )}
-        {data.map((e, i) => <Row key={e.id} e={e} i={i} />)}
+      {isLoading && <div className="h-24 animate-pulse rounded-2xl bg-ink-50" />}
+      {!isLoading && !data.length && <EmptyState kind="inbox" title="No activity yet" hint="AI requests and approvals will be recorded here." />}
+      <div className="space-y-4">
+        {days.map(([day, list], di) => (
+          <section key={day}>
+            <h3 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-[0.12em] text-ink-400">{day}</h3>
+            <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
+              {list.map((e, i) => <Row key={e.id} e={e} i={di * 4 + i} />)}
+            </div>
+          </section>
+        ))}
       </div>
       {data.length >= 200 && <p className="mt-2 text-xs text-ink-400">Showing the latest 200. Narrow the filters to see older entries.</p>}
     </div>
