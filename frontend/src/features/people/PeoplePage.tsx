@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Briefcase, Mail, MapPin, Phone, Search, UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Briefcase, Mail, MapPin, Phone, Search, UserPlus, Users } from "lucide-react";
+import { PageHero, EmptyState, heroGhost } from "@/components/ui/page";
 import { Drawer } from "@/components/ui/drawer";
 import { useAuth } from "@/features/auth/AuthContext";
 import { initials } from "@/features/admin/roles";
@@ -40,8 +40,8 @@ function Load({ p }: { p: Person }) {
         <span>{p.open_tasks} open tasks{p.overdue_tasks ? <span className="text-red-600"> · {p.overdue_tasks} overdue</span> : null}</span>
         <span>{p.active_matters} matters</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-ink-50">
-        <div className={cn("h-full origin-left animate-grow rounded-full", pct > 80 ? "bg-red-500" : pct > 50 ? "bg-amber-400" : "bg-emerald-500")}
+      <div className="h-2 overflow-hidden rounded-full bg-ink-50">
+        <div className={cn("h-full origin-left animate-grow rounded-full", pct > 80 ? "bg-gradient-to-r from-red-400 to-red-600" : pct > 50 ? "bg-gradient-to-r from-amber-300 to-amber-500" : "bg-gradient-to-r from-brass-300 to-brass-500")}
           style={{ width: `${Math.max(pct, 3)}%` }} />
       </div>
     </div>
@@ -124,53 +124,53 @@ export function PeoplePage() {
   const [q, setQ] = useState("");
   const [area, setArea] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  const [freeOnly, setFreeOnly] = useState(false);
   const { data: people = [], isLoading } = useQuery({ queryKey: ["people"], queryFn: () => api<Person[]>("/people"), refetchInterval: 60_000 });
   const areas = useMemo(() => [...new Set(people.flatMap((p) => p.practice_areas))].sort(), [people]);
   const shown = people.filter((p) =>
-    (!area || p.practice_areas.includes(area)) &&
+    (!area || p.practice_areas.includes(area)) && (!freeOnly || p.status === "free") &&
     (!q || `${p.name} ${p.designation ?? ""} ${p.role_name}`.toLowerCase().includes(q.toLowerCase())));
 
+  const free = people.filter((p) => p.status === "free").length;
+  const chip = (on: boolean) => cn("h-9 rounded-full px-4 text-sm font-semibold transition hover:-translate-y-0.5",
+    on ? "bg-ink-900 text-snow dark:bg-brass-400 dark:text-night-950" : "border border-ink-100 bg-white text-ink-600 hover:border-ink-200");
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="mb-6 flex flex-wrap animate-fade-up items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl text-ink-900">People</h1>
-          <p className="mt-1 text-sm text-ink-400">{people.filter((p) => p.status === "free").length} free now</p>
-        </div>
-        {user?.role_name === "admin" && (
-          <Button asChild variant="outline" size="sm"><Link to="/admin/users"><UserPlus className="size-4" /> Add person</Link></Button>
-        )}
-      </div>
-      <div className="mb-5 flex flex-wrap gap-2">
-        <div className="relative min-w-56 flex-1">
+    <div className="flex flex-col gap-[18px]">
+      <PageHero icon={Users} eyebrow="Firm" title="People"
+        sub={`${free} of ${people.length} free now. Open a card to see hours, bookings and matters.`}
+        actions={user?.role_name === "admin" && <Link to="/admin/users" className={heroGhost}><UserPlus className="size-4" /> Add person</Link>} />
+      <div className="flex flex-wrap items-center gap-2">
+        <button className={chip(!area)} onClick={() => setArea("")}>All</button>
+        {areas.map((a) => <button key={a} className={chip(area === a)} onClick={() => setArea(area === a ? "" : a)}>{a}</button>)}
+        <label className="flex h-9 cursor-pointer items-center gap-2 rounded-full border border-ink-100 bg-white px-3.5 text-sm font-semibold text-ink-600">
+          <input type="checkbox" checked={freeOnly} onChange={(e) => setFreeOnly(e.target.checked)} className="size-4 accent-emerald-600" /> Free now only
+        </label>
+        <div className="relative ml-auto w-full sm:w-64">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-300" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search"
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people" aria-label="Search people"
             className="h-10 w-full rounded-xl border border-ink-100 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-brass-400 focus:ring-4 focus:ring-brass-300/25" />
         </div>
-        {areas.length > 0 && (
-          <select value={area} onChange={(e) => setArea(e.target.value)}
-            className="h-10 rounded-xl border border-ink-100 bg-white px-3 text-sm text-ink-700 outline-none focus:border-brass-400">
-            <option value="">All practice areas</option>
-            {areas.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-        )}
       </div>
-      {isLoading && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-ink-50" />)}</div>}
-      {!isLoading && !shown.length && <p className="animate-fade-in py-10 text-center text-sm text-ink-300">No one matches.</p>}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {isLoading && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">{[0, 1, 2].map((i) => <div key={i} className="h-44 animate-pulse rounded-[20px] bg-ink-100/60" />)}</div>}
+      {!isLoading && !shown.length && <div className="rounded-[20px] border border-ink-100 bg-white"><EmptyState kind="people" title="No one matches" hint="Try another practice area or clear the search." /></div>}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {shown.map((p, i) => (
           <button key={p.id} onClick={() => setOpen(p.id)} style={{ animationDelay: `${i * 40}ms` }}
-            className="flex animate-fade-up flex-col gap-4 rounded-2xl border border-ink-100 bg-white/80 p-5 text-left shadow-sm transition hover:-translate-y-1 hover:border-brass-300 hover:shadow-lg">
+            className="flex animate-fade-up flex-col gap-4 rounded-[20px] border border-ink-100 bg-white p-5 text-left transition duration-200 hover:-translate-y-1 hover:border-ink-200 hover:shadow-[0_16px_32px_rgba(7,13,32,0.10)]">
             <div className="flex items-center gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-ink-600 to-ink-900 text-sm font-semibold text-white">{initials(p.name)}</span>
+              <span className="relative grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brass-300 to-brass-600 text-sm font-bold text-night-950">
+                {initials(p.name)}
+                <span className={cn("absolute bottom-0 right-0 size-3 rounded-full border-2 border-white",
+                  p.status === "free" ? "bg-emerald-500" : p.status === "busy" ? "bg-amber-500" : "bg-ink-300")} />
+              </span>
               <div className="min-w-0">
-                <div className="truncate font-medium text-ink-900">{p.name}</div>
+                <div className="truncate font-semibold text-ink-900">{p.name}</div>
                 <div className="truncate text-xs capitalize text-ink-400">{p.designation || p.role_name}</div>
               </div>
             </div>
             <StatusDot p={p} />
             {p.practice_areas.length > 0 && (
-              <div className="flex flex-wrap gap-1">{p.practice_areas.slice(0, 3).map((a) => <span key={a} className="rounded-full bg-ink-50 px-2 py-0.5 text-[11px] text-ink-600">{a}</span>)}</div>
+              <div className="flex flex-wrap gap-1">{p.practice_areas.slice(0, 3).map((a) => <span key={a} className="rounded-full bg-ink-50 px-2 py-0.5 text-[11px] font-medium text-ink-600">{a}</span>)}</div>
             )}
             <Load p={p} />
           </button>

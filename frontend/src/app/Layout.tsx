@@ -185,7 +185,7 @@ export function Layout() {
       <div className={cn("flex flex-1", side === "right" && "flex-row-reverse")}>
         <div className={side === "bottom"
           ? "pointer-events-none fixed inset-x-0 bottom-4 z-30 hidden justify-center md:flex [&>nav]:pointer-events-auto"
-          : "sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 items-center px-2 md:flex"}>
+          : "sticky top-16 z-30 hidden h-[calc(100vh-4rem)] shrink-0 items-center px-2 md:flex"}>
           <Dock side={side} onSide={setSide} items={items} />
         </div>
         <main className={cn("min-w-0 flex-1 px-4 py-4 md:pb-10", side === "bottom" && "md:pb-28", side === "left" && "md:pl-1", side === "right" && "md:pr-1")}>
