@@ -41,8 +41,8 @@ def test_only_admin_can_configure_ai_and_integrations(client, admin, make_user):
     for role in ("partner", "lawyer", "associate", "paralegal"):
         h = headers(make_user(role))
         assert client.get("/api/settings/ai", headers=h).status_code == 403, role
-        assert client.put("/api/settings/ai", headers=h, json={"provider": "openai_compatible", "base_url": "http://x",
-                                                                "chat_model": "m", "embedding_model": "e"}).status_code == 403, role
+        assert client.put("/api/settings/ai", headers=h, json={"chat": {"kind": "openai", "fields": {}, "model": "m"},
+                                                                "embedding": {"same_as_chat": True, "model": "e"}}).status_code == 403, role
         assert client.post("/api/settings/ai/test", headers=h).status_code == 403, role
         assert client.get("/api/settings/ai/routes", headers=h).status_code == 403, role
         assert client.get("/api/settings/legal", headers=h).status_code == 403, role

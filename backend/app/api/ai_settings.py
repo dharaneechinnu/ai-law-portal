@@ -1,12 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import require_roles
+from app.api.deps import get_current_user, require_roles
 from app.core.db import get_db
-from app.schemas import AIConfigIn, AIConfigOut, ModelRouteIn, ModelRouteOut
-from app.services import ai_registry
+from app.models import User
+from app.schemas import AIConfigIn, AIConfigOut, AIModelsIn, AITestOut, ModelRouteIn, ModelRouteOut
+from app.services import ai_catalog, ai_registry, audit
 
 router = APIRouter(prefix="/settings/ai", tags=["settings"], dependencies=[Depends(require_roles("admin"))])
+
+
+@router.get("/providers")
+def providers():
+    """Every supported provider and the fields it needs. Built into the Settings page."""
+    return [ai_catalog.public(p) for p in ai_catalog.PROVIDERS]
 
 
 @router.get("", response_model=AIConfigOut)
@@ -15,20 +22,35 @@ def get_config(db: Session = Depends(get_db)):
 
 
 @router.put("", response_model=AIConfigOut)
-def put_config(body: AIConfigIn, db: Session = Depends(get_db)):
-    ai_registry.save_config(db, body)
+def put_config(body: AIConfigIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    try:
+        ai_registry.save_config(db, body)
+    except (ai_registry.BadConfig, KeyError) as e:
+        db.rollback()
+        raise HTTPException(400, str(e).strip("'\""))
+    audit.record(db, action="AI_PROVIDER_UPDATED", user_id=user.id, resource_type="settings", executed=True,
+                 result={"chat": f"{body.chat.kind}:{body.chat.model}",
+                         "embedding": f"{body.chat.kind if body.embedding.same_as_chat else body.embedding.kind}:"
+                                      f"{body.embedding.model}"})
+    db.commit()
     return ai_registry.read_config(db)
 
 
-@router.post("/test")
-async def test_config(db: Session = Depends(get_db)):
-    """Runs a real chat + embedding call with the saved config."""
+@router.post("/models")
+async def list_models(body: AIModelsIn, db: Session = Depends(get_db)):
+    """Live model list from the provider, using the form's values (empty secrets fall back to the saved ones)."""
     try:
-        await ai_registry.get_llm(db).test_connection()
-        vec = await ai_registry.get_embedder(db).embed(["test"])
+        return {"models": await ai_registry.models_for(db, body)}
+    except (ai_registry.BadConfig, KeyError) as e:
+        raise HTTPException(400, str(e).strip("'\""))
     except Exception as e:
-        raise HTTPException(400, f"Connection failed: {e}")
-    return {"ok": True, "embedding_dim": len(vec[0])}
+        raise HTTPException(400, f"Couldn't load models: {ai_registry._short(e)}")
+
+
+@router.post("/test", response_model=AITestOut)
+async def test_config(body: AIConfigIn | None = Body(default=None), db: Session = Depends(get_db)):
+    """Real chat + embedding calls. With a body, tests the form before saving; without, tests the saved settings."""
+    return await ai_registry.test(db, body)
 
 
 @router.get("/routes", response_model=list[ModelRouteOut])
