@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { api } from "@/services/api";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/page";
 import { GO_KEYS, MOD, fire, useCommand } from "@/lib/shortcuts";
 import { useTheme } from "@/lib/theme";
 import type { Client, Matter, Person, Task } from "@/types";
@@ -101,9 +102,9 @@ export function CommandPalette() {
     <div className="fixed inset-0 z-[60] flex items-start justify-center px-4 pt-[12vh]" onMouseDown={close}>
       <div className="absolute inset-0 animate-fade-in bg-night-950/40 backdrop-blur-sm" />
       <div role="dialog" aria-label="Search" onMouseDown={(e) => e.stopPropagation()}
-        className="relative w-full max-w-xl animate-palette overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-2xl shadow-night-950/30">
+        className="relative w-full max-w-xl animate-palette overflow-hidden rounded-3xl border border-ink-100 bg-white shadow-[0_30px_60px_rgba(7,13,32,0.35)]">
         <div className="flex items-center gap-3 border-b border-ink-100 px-4">
-          <Search className="size-4 shrink-0 text-ink-400" />
+          <Search className="size-[18px] shrink-0 text-brass-500" />
           <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
             placeholder="Search matters, clients, people, tasks…" aria-label="Search"
             className="h-14 flex-1 bg-transparent text-[15px] text-ink-900 outline-none placeholder:text-ink-300" />
@@ -111,7 +112,7 @@ export function CommandPalette() {
         </div>
 
         <div ref={list} className="max-h-[min(60vh,26rem)] overflow-y-auto p-2">
-          {!items.length && !loading && <p className="py-10 text-center text-sm text-ink-400">No results for “{q}”.</p>}
+          {!items.length && !loading && <EmptyState kind="search" title={`No results for “${q}”`} hint="Try a matter number, client or person." />}
           {items.map((it, i) => {
             const header = it.group !== lastGroup ? (lastGroup = it.group) : null;
             const Icon = it.icon;
@@ -119,10 +120,11 @@ export function CommandPalette() {
               <div key={it.id}>
                 {header && <div className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">{header}</div>}
                 <button data-i={i} onClick={it.run} onMouseMove={() => setActive(i)}
-                  className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors",
-                    i === active ? "bg-ink-50 text-ink-900" : "text-ink-700")}>
+                  className={cn("relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors",
+                    i === active ? "bg-ink-50 font-medium text-ink-900" : "text-ink-700")}>
+                  {i === active && <span className="absolute inset-y-2 left-0 w-[3px] animate-fade-in rounded-full bg-gradient-to-b from-brass-300 to-brass-500" />}
                   <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg transition-colors",
-                    i === active ? "bg-brass-100 text-brass-700" : "bg-ink-50 text-ink-500")}>
+                    i === active ? "bg-gradient-to-br from-night-800 to-night-950 text-brass-300" : "bg-ink-50 text-ink-500")}>
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1 truncate">
