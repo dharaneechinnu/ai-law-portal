@@ -144,6 +144,15 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       admins, own for others). `/analytics`: firm (overdue, hearings, matter age, workload by person, practice areas), legal
       (unreviewed and high-impact alerts), AI (ran / asked / blocked, approved / rejected / waiting, top actions, agents, models).
 
+## UI redesign (navy + brass)
+
+- [x] **App shell** — Navy top bar (logo, search, Ask AI, theme, notifications, settings, account menu) and an icon-only
+      navigation dock the user drags to the left, right or bottom (arrow keys on the handle too); saved per browser. Tooltips on hover.
+- [x] **Pages** — Full-width navy cover on every page (shared `PageHero`): dashboard (illustration, approvals card, icon-only
+      Customize), matters, matter workspace, clients, people, tasks, calendar, legal intelligence, approvals (stamp animation),
+      analytics, settings (section nav), team & access, account. Sign-in and sign-up keep their existing split-screen design.
+- [ ] Frontend tests for the new shell and pages (verified so far with scripted browser runs only).
+
 ## Role gaps — planned (from the Partner / Lawyer / Associate / Paralegal review)
 
 - [ ] **Billing & time** — Time entries, rates, invoices, payments, billing tab per case; partner/admin only by default.
@@ -166,4 +175,4 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 > Sprint 1 was verified end to end against Postgres 16 + pgvector: login, RBAC (403 for non-admin on AI settings),
 > client/matter CRUD, members, profile validation, upload -> extract -> embed -> hybrid retrieval -> cited answer, timeline.
 > The LLM and embedding endpoints used for that run were a local OpenAI-compatible stub; try a real model from the Settings page.
-> Clients and Account pages are in the sidebar. Role changes remain admin-only (user-management UI comes later).
+> Clients and Account are in the navigation dock and account menu. Role changes remain admin-only (user-management UI comes later).
