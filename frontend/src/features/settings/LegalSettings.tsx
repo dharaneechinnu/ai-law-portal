@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Label, control } from "@/components/ui/drawer";
 import { api, errorMessage } from "@/services/api";
 import type { LegalSource } from "@/types";
 
-const input = "w-full rounded-md border px-3 py-2 text-sm";
 
 // Empty skeleton only: the real paths and field names come from your eCourts provider's documentation.
 const TEMPLATE = {
@@ -56,37 +56,41 @@ export function LegalSettings() {
   const test = useMutation({ mutationFn: () => api("/settings/legal/test", { method: "POST" }) });
 
   return (
-    <div className="max-w-2xl space-y-3">
-      <h2 className="text-lg font-semibold">Legal data (eCourts)</h2>
-      <p className="text-sm text-slate-500">
-        The API key is stored encrypted on the server and never shown again. Endpoint paths and field mapping come from your
-        eCourts provider's documentation; nothing is assumed.
-      </p>
-      <input className={input} placeholder="Base URL (from your provider's docs)" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} />
-      <input className={input} type="password" autoComplete="off"
-        placeholder={data?.has_api_key ? "API key (saved — leave blank to keep)" : "API key"}
-        value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /> Enabled
-      </label>
+    <section className="space-y-4">
       <div>
-        <div className="mb-1 text-sm font-medium">Auth, endpoints and field mapping (JSON)</div>
-        <textarea className={`${input} h-80 font-mono text-xs`} value={config} onChange={(e) => setConfig(e.target.value)} spellCheck={false} />
-        <p className="text-xs text-slate-500">
-          Paths can use placeholders like {"{id}"}, {"{query}"} or your own filter names. Mapping values are dot paths into one
-          item of the response, e.g. <code>court.name</code>.
+        <h2 className="font-serif text-xl font-bold text-ink-900">Legal data (eCourts)</h2>
+        <p className="text-sm text-ink-500">
+          The API key is stored encrypted on the server and never shown again. Endpoint paths and field mapping come from your
+          eCourts provider's documentation; nothing is assumed.
         </p>
       </div>
-      <div className="flex items-center gap-2">
-        <Button onClick={() => save.mutate()} disabled={save.isPending}>Save</Button>
-        <Button variant="outline" onClick={() => test.mutate()} disabled={!data?.configured || test.isPending}>Test connection</Button>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label text="Base URL"><input className={control} placeholder="From your provider's docs" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} /></Label>
+        <Label text="API key">
+          <input className={control} type="password" autoComplete="off" placeholder={data?.has_api_key ? "Saved. Leave blank to keep." : ""}
+            value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+        </Label>
       </div>
-      {data?.last_synced_at && <p className="text-xs text-slate-500">Last fetch: {new Date(data.last_synced_at).toLocaleString()}</p>}
-      {save.isSuccess && <p className="text-sm text-green-700">Saved.</p>}
-      {test.isSuccess && <p className="text-sm text-green-700">Connected.</p>}
+      <label className="flex w-fit cursor-pointer items-center gap-2 rounded-xl bg-ink-50 px-3 py-2 text-sm font-medium text-ink-700">
+        <input type="checkbox" className="size-4 accent-ink-900" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /> Enabled
+      </label>
+      <Label text="Auth, endpoints and field mapping (JSON)">
+        <textarea className={`${control} h-80 py-2 font-mono text-xs`} value={config} onChange={(e) => setConfig(e.target.value)} spellCheck={false} />
+      </Label>
+      <p className="-mt-2 text-xs text-ink-400">
+        Paths can use placeholders like {"{id}"}, {"{query}"} or your own filter names. Mapping values are dot paths into one
+        item of the response, e.g. <code>court.name</code>.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</Button>
+        <Button variant="outline" onClick={() => test.mutate()} disabled={!data?.configured || test.isPending}>Test connection</Button>
+        {save.isSuccess && <span className="animate-pop text-sm font-semibold text-emerald-700">Saved</span>}
+        {test.isSuccess && <span className="animate-pop text-sm font-semibold text-emerald-700">Connected</span>}
+      </div>
+      {data?.last_synced_at && <p className="text-xs text-ink-400">Last fetch: {new Date(data.last_synced_at).toLocaleString()}</p>}
       {(jsonError || save.isError || test.isError) && (
         <p className="text-sm text-red-600">{jsonError || errorMessage(save.error ?? test.error)}</p>
       )}
-    </div>
+    </section>
   );
 }
