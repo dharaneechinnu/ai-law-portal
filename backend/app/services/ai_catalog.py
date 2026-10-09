@@ -87,6 +87,65 @@ PROVIDERS: list[dict] = [
          tools=True, dimensions=False, list_models=True, chat_models=[], embedding_models=[]),
 ]
 
+# Cost: "free" (runs on your own machine), "free_tier" (free with limits, paid beyond), "paid" (pay per use).
+PRICING = {
+    "openai": ("paid", "Pay per use. Business API data is not used for training by default."),
+    "anthropic": ("paid", "Pay per use. Business API data is not used for training by default."),
+    "google": ("free_tier", "Free tier with rate limits. On the free tier Google may use prompts to improve its "
+                            "products, so use a paid key for client data."),
+    "azure_openai": ("paid", "Billed through your Azure subscription. Data stays in your Azure tenant."),
+    "bedrock": ("paid", "Billed through your AWS account. Data stays in your AWS account."),
+    "mistral": ("free_tier", "Free experiment plan with low limits; paid plans for real use."),
+    "groq": ("free_tier", "Free tier with rate limits; pay as you go for more."),
+    "deepseek": ("paid", "Low-cost pay per use."),
+    "xai": ("paid", "Pay per use."),
+    "openrouter": ("free_tier", "Some models are free (names ending in :free); the rest are pay per use."),
+    "together": ("paid", "Pay per use."),
+    "fireworks": ("paid", "Pay per use."),
+    "cohere": ("free_tier", "Free trial key for testing only; a paid key for real use."),
+    "perplexity": ("paid", "Pay per use."),
+    "huggingface": ("free_tier", "Small free monthly credit; pay as you go after that."),
+    "ollama": ("free", "Free. Runs on your computer; nothing leaves the firm."),
+    "lmstudio": ("free", "Free. Runs on your computer; nothing leaves the firm."),
+    "vllm": ("free", "Free software on your own server; you pay only for the hardware."),
+    "openai_compatible": ("free", "Depends on the server you connect."),
+}
+
+# Short setup steps shown next to the form. Cloud providers share the API-key steps.
+GUIDES = {
+    "ollama": ["Install Ollama from ollama.com and open it.",
+               "In a terminal run: ollama pull llama3.1  and  ollama pull nomic-embed-text",
+               "Keep Ollama running, then Load models here."],
+    "lmstudio": ["Install LM Studio from lmstudio.ai and download a chat model and an embedding model.",
+                 "Open the Developer tab and start the server.",
+                 "Load models here and pick them."],
+    "vllm": ["Start vLLM with the OpenAI server (vllm serve <model>).",
+             "Enter its address, for example http://your-server:8000/v1.",
+             "Load models here and pick one."],
+    "openai_compatible": ["Enter the server's address ending in /v1.",
+                          "Add an API key if the server needs one.",
+                          "Load models here and pick one."],
+    "azure_openai": ["In the Azure portal, create an Azure OpenAI resource.",
+                     "Deploy a chat model and an embedding model; note the deployment names.",
+                     "Copy the endpoint and a key from Keys and Endpoint, and type the deployment names as models."],
+    "bedrock": ["In the AWS console, enable the models you want under Bedrock > Model access.",
+                "Create an IAM user with Bedrock access and an access key.",
+                "Enter the region and both keys, then Load models."],
+}
+
+
+def _finish(p: dict) -> None:
+    p["pricing"], p["pricing_note"] = PRICING.get(p["id"], ("paid", None))
+    p["guide"] = GUIDES.get(p["id"]) or [
+        f"Sign up at {p['name']}" + (" and add a payment method." if p["pricing"] == "paid" else "."),
+        "Open the API keys page (Get a key) and create a key.",
+        "Paste the key here, then Load models and pick one.",
+    ]
+
+
+for _p in PROVIDERS:
+    _finish(_p)
+
 BY_ID = {p["id"]: p for p in PROVIDERS}
 # Older saved configs used these kinds.
 ALIASES = {"azure": "azure_openai"}

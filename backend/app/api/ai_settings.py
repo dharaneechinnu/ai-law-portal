@@ -1,3 +1,4 @@
+import httpx
 from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -43,6 +44,14 @@ async def list_models(body: AIModelsIn, db: Session = Depends(get_db)):
         return {"models": await ai_registry.models_for(db, body)}
     except (ai_registry.BadConfig, KeyError) as e:
         raise HTTPException(400, str(e).strip("'\""))
+    except httpx.ConnectError:
+        p = ai_catalog.get(body.kind)
+        raise HTTPException(400, f"Couldn't reach {p['name']}. Check the server address"
+                                 f"{' and that it is running' if p['pricing'] == 'free' else ''}.")
+    except httpx.HTTPStatusError as e:
+        code = e.response.status_code
+        raise HTTPException(400, "The key was refused. Check the API key." if code in (401, 403)
+                            else f"The provider answered {code}.")
     except Exception as e:
         raise HTTPException(400, f"Couldn't load models: {ai_registry._short(e)}")
 
