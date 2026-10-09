@@ -16,7 +16,7 @@ const TONE: Record<string, string> = {
   hearing: "bg-brass-100 text-brass-700", briefing: "bg-ink-100 text-ink-600",
 };
 
-/** Sidebar bell with unread badge and a panel of recent notifications. Polls every 30 seconds. */
+/** Top-bar bell with unread badge and a panel of recent notifications. Polls every 30 seconds. */
 export function NotificationBell() {
   const qc = useQueryClient();
   const nav = useNavigate();
@@ -53,21 +53,18 @@ export function NotificationBell() {
 
   return (
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen(!open)} aria-label={`Notifications${count ? `, ${count} unread` : ""}`}
-        className={cn("group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink-200/80 transition hover:bg-white/5 hover:text-white", open && "bg-white/10 text-white")}>
-        <span className="relative">
-          <Bell className={cn("size-4 text-ink-300 transition group-hover:text-brass-200", count > 0 && "animate-sway text-brass-300")} />
-          {count > 0 && (
-            <span key={count} className="absolute -right-2 -top-2 grid h-4 min-w-4 animate-pop place-items-center rounded-full bg-brass-400 px-1 text-[10px] font-semibold tabular-nums text-ink-950">
-              {count > 99 ? "99+" : count}
-            </span>
-          )}
-        </span>
-        Notifications
+      <button onClick={() => setOpen(!open)} aria-label={`Notifications${count ? `, ${count} unread` : ""}`} title="Notifications"
+        className={cn("group relative grid size-9 place-items-center rounded-xl text-ink-500 transition hover:bg-ink-50 hover:text-ink-900", open && "bg-ink-50 text-ink-900")}>
+        <Bell className={cn("size-[18px] transition", count > 0 && "animate-sway text-brass-600")} />
+        {count > 0 && (
+          <span key={count} className="absolute right-0.5 top-0.5 grid h-4 min-w-4 animate-pop place-items-center rounded-full bg-brass-400 px-1 text-[10px] font-semibold tabular-nums text-night-950 ring-2 ring-slate-50">
+            {count > 99 ? "99+" : count}
+          </span>
+        )}
       </button>
 
       {open && (
-        <div className="absolute bottom-full left-0 z-50 mb-2 w-[22rem] max-w-[calc(100vw-2rem)] origin-bottom-left animate-pop overflow-hidden rounded-2xl border border-ink-100 bg-white text-ink-900 shadow-2xl">
+        <div className="absolute right-0 top-full z-50 mt-2 w-[24rem] max-w-[calc(100vw-2rem)] origin-top-right animate-palette overflow-hidden rounded-2xl border border-ink-100 bg-white text-ink-900 shadow-2xl">
           <header className="flex items-center justify-between border-b border-ink-50 px-4 py-3">
             <span className="text-sm font-semibold">Notifications</span>
             {count > 0 && (

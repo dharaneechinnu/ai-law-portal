@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ban, Bot, CheckCircle2, Clock, Send, Sparkles, X } from "lucide-react";
 import { api, errorMessage } from "@/services/api";
 import { cn } from "@/lib/utils";
+import { MOD, useCommand } from "@/lib/shortcuts";
 import type { AgentInfo, ChatReply, ChatStep } from "@/types";
 
 type Msg = { role: "user" | "agent"; text: string; steps?: ChatStep[] };
@@ -45,6 +46,15 @@ export function AssistantPanel() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [execution, setExecution] = useState<string | null>(null);
   const end = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  useCommand("assistant", useCallback(() => setOpen((o) => !o), []));
+  useEffect(() => {
+    if (!open) return;
+    input.current?.focus();
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [open]);
   const { data: agents = [] } = useQuery({ queryKey: ["assistant-agents"], queryFn: () => api<AgentInfo[]>("/assistant/agents"), enabled: open });
 
   const send = useMutation({
@@ -65,9 +75,10 @@ export function AssistantPanel() {
 
   return (
     <>
-      <button onClick={() => setOpen(!open)} aria-label={open ? "Close assistant" : "Open assistant"}
-        className={cn("fixed bottom-6 right-6 z-40 grid size-14 place-items-center rounded-full bg-ink-900 text-brass-300 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl",
-          open && "rotate-90 bg-ink-700")}>
+      <button onClick={() => setOpen(!open)} aria-label={open ? "Close assistant" : "Open assistant"} title={`Assistant (${MOD}+J)`}
+        className={cn("group fixed bottom-6 right-6 z-40 grid size-14 place-items-center rounded-full bg-night-900 text-brass-300 shadow-xl shadow-night-950/30 ring-1 ring-snow/10 transition-all duration-300 hover:scale-105 hover:shadow-2xl",
+          open && "rotate-90 bg-night-700")}>
+        {!open && <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-brass-400/20 [animation-duration:2.8s]" />}
         {open ? <X className="size-6" /> : <Sparkles className="size-6" />}
       </button>
 
@@ -79,7 +90,7 @@ export function AssistantPanel() {
             <div className="mt-2 flex flex-wrap gap-1">
               {agents.map((a) => (
                 <button key={a.key} onClick={() => switchAgent(a.key)}
-                  className={cn("rounded-full px-2.5 py-1 text-xs transition-all", agent === a.key ? "bg-ink-900 text-white" : "bg-ink-50 text-ink-500 hover:bg-ink-100")}>
+                  className={cn("rounded-full px-2.5 py-1 text-xs transition-all", agent === a.key ? "bg-ink-900 text-white shadow-sm" : "bg-ink-50 text-ink-500 hover:bg-ink-100")}>
                   {a.name}
                 </button>
               ))}
@@ -123,7 +134,7 @@ export function AssistantPanel() {
 
           <form onSubmit={(e) => { e.preventDefault(); if (text.trim() && !send.isPending) send.mutate(text.trim()); }}
             className="flex items-center gap-2 border-t border-ink-50 p-3">
-            <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Message" aria-label="Message"
+            <input ref={input} value={text} onChange={(e) => setText(e.target.value)} placeholder="Message" aria-label="Message"
               className="h-10 flex-1 rounded-xl border border-ink-100 px-3 text-sm outline-none transition focus:border-brass-400 focus:ring-4 focus:ring-brass-300/25" />
             <button disabled={!text.trim() || send.isPending} aria-label="Send"
               className="grid size-10 place-items-center rounded-xl bg-ink-900 text-white transition hover:bg-ink-700 disabled:opacity-40">

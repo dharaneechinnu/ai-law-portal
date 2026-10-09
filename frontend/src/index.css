@@ -24,6 +24,20 @@
   --color-brass-600: #a57c2b;
   --color-brass-700: #7f5e22;
 
+  /* Fixed dark palette for chrome that stays dark in both themes (sidebar, assistant button). */
+  --color-night-50: #f3f5fb;
+  --color-night-100: #e4e8f4;
+  --color-night-200: #c5cde6;
+  --color-night-300: #97a5cf;
+  --color-night-400: #6377b0;
+  --color-night-500: #3f5494;
+  --color-night-600: #2c3f7a;
+  --color-night-700: #1f2f63;
+  --color-night-800: #15224b;
+  --color-night-900: #0c1633;
+  --color-night-950: #070d20;
+  --color-snow: #ffffff;
+
   --animate-float: float 7s ease-in-out infinite;
   --animate-float-slow: float 10s ease-in-out infinite;
   --animate-sway: sway 6s ease-in-out infinite;
@@ -42,6 +56,10 @@
   --animate-week-right: week-right 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-week-left: week-left 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-grow: grow 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-page: page 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-palette: palette 0.22s cubic-bezier(0.2, 0.8, 0.2, 1.1) both;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-glow: glow 3s ease-in-out infinite;
 
   @keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-12px) } }
   @keyframes sway { 0%, 100% { transform: rotate(-3deg) } 50% { transform: rotate(3deg) } }
@@ -65,11 +83,85 @@
   @keyframes week-right { from { opacity: 0; transform: translateX(24px) } to { opacity: 1; transform: none } }
   @keyframes week-left { from { opacity: 0; transform: translateX(-24px) } to { opacity: 1; transform: none } }
   @keyframes grow { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+  @keyframes slide-in-left { from { transform: translateX(-100%) } to { transform: none } }
+  @keyframes page { from { opacity: 0; transform: translateY(10px); filter: blur(3px) } to { opacity: 1; transform: none; filter: none } }
+  @keyframes palette { from { opacity: 0; transform: translateY(-8px) scale(0.97) } to { opacity: 1; transform: none } }
+  @keyframes shimmer { from { background-position: -200% 0 } to { background-position: 200% 0 } }
+  @keyframes glow { 0%, 100% { opacity: 0.55 } 50% { opacity: 1 } }
   @keyframes draw { from { stroke-dashoffset: 60 } to { stroke-dashoffset: 0 } }
 }
 
 body {
   @apply bg-slate-50 font-sans text-slate-900 antialiased;
+}
+
+/* Dark theme: the app is written against the ink scale and white surfaces, so dark mode remaps those tokens.
+   Applied to <html> only while signed in (sign-in screens keep their own look). */
+html.dark {
+  color-scheme: dark;
+  --color-white: #0f1731;
+  --color-ink-50: #141d3a;
+  --color-ink-100: #1e2a4d;
+  --color-ink-200: #2c3a66;
+  --color-ink-300: #56679a;
+  --color-ink-400: #8392c0;
+  --color-ink-500: #a5b1d6;
+  --color-ink-600: #c1cae7;
+  --color-ink-700: #d7def1;
+  --color-ink-800: #e6eaf7;
+  --color-ink-900: #f1f4fb;
+  --color-ink-950: #f8f9fd;
+  --color-slate-50: #0a1024;
+  --color-slate-100: #1a2445;
+  --color-slate-300: #34436e;
+  --color-slate-400: #8392c0;
+  --color-slate-500: #9ba8cf;
+  --color-slate-600: #b8c2e2;
+  --color-slate-700: #d0d7ee;
+  --color-slate-800: #e0e5f5;
+  --color-slate-900: #eef1fa;
+  --color-brass-100: #2f2711;
+  --color-brass-200: #4b3c18;
+  --color-brass-600: #e2bf6c;
+  --color-brass-700: #efd79d;
+  --color-red-50: #3a141b;
+  --color-red-100: #4b1a22;
+  --color-red-200: #6d2430;
+  --color-red-300: #93303e;
+  --color-red-600: #f87f7f;
+  --color-red-700: #fca5a5;
+  --color-emerald-50: #0c2c24;
+  --color-emerald-300: #1f6b55;
+  --color-emerald-600: #3ddba4;
+  --color-emerald-700: #74e9be;
+  --color-emerald-800: #a7f3d0;
+  --color-green-100: #0d2c1b;
+  --color-green-700: #86efac;
+  --color-amber-50: #33250b;
+  --color-amber-100: #3e2d0d;
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fcd34d;
+  --color-sky-50: #0b2536;
+  --color-sky-700: #7dd3fc;
+  --color-violet-50: #221a3d;
+  --color-violet-700: #c4b5fd;
+  --color-teal-50: #0b2a2a;
+  --color-teal-700: #5eead4;
+}
+
+/* Theme switch: a circular reveal from the toggle (View Transitions API), plain swap elsewhere. */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { animation: reveal 0.55s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes reveal {
+  from { clip-path: circle(0 at var(--reveal-x, 50%) var(--reveal-y, 0%)) }
+  to { clip-path: circle(var(--reveal-r, 150vmax) at var(--reveal-x, 50%) var(--reveal-y, 0%)) }
+}
+
+/* Thin, quiet scrollbars. */
+* { scrollbar-width: thin; scrollbar-color: var(--color-ink-200) transparent; }
+
+kbd {
+  @apply inline-grid h-5 min-w-5 place-items-center rounded border border-ink-200 bg-ink-50 px-1 font-sans text-[10px] font-semibold text-ink-500;
 }
 
 /* SVG parts rotate around their own box, not the canvas origin. */
@@ -82,8 +174,4 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
