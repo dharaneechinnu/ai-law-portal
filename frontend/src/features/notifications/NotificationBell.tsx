@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlarmClock, Bell, CalendarClock, CheckCheck, CheckCircle2, Gavel, ShieldQuestion, Sparkles } from "lucide-react";
 import { relativeTime } from "@/features/admin/roles";
+import { EmptyState } from "@/components/ui/page";
 import { api } from "@/services/api";
 import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/types";
@@ -21,6 +22,7 @@ export function NotificationBell() {
   const qc = useQueryClient();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
+  const [unreadOnly, setUnreadOnly] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { data: count = 0 } = useQuery({
     queryKey: ["notifications", "count"],
@@ -45,6 +47,7 @@ export function NotificationBell() {
     return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
   }, [open]);
 
+  const shown = unreadOnly ? items.filter((n) => !n.read_at) : items;
   const go = (n: AppNotification) => {
     if (!n.read_at) read.mutate(n.id);
     setOpen(false);
@@ -64,19 +67,29 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[24rem] max-w-[calc(100vw-2rem)] origin-top-right animate-palette overflow-hidden rounded-2xl border border-ink-100 bg-white text-ink-900 shadow-2xl">
-          <header className="flex items-center justify-between border-b border-ink-50 px-4 py-3">
-            <span className="text-sm font-semibold">Notifications</span>
-            {count > 0 && (
-              <button onClick={() => readAll.mutate()} className="flex items-center gap-1 text-xs text-brass-700 hover:underline">
-                <CheckCheck className="size-3.5" /> Mark all read
-              </button>
-            )}
+        <div className="absolute right-0 top-full z-50 mt-2 w-[24rem] max-w-[calc(100vw-2rem)] origin-top-right animate-palette overflow-hidden rounded-2xl border border-ink-100 bg-white text-ink-900 shadow-[0_30px_60px_rgba(7,13,32,0.3)]">
+          <header className="bg-gradient-to-br from-night-800 to-night-950 px-4 pb-3 pt-3.5 text-snow">
+            <div className="flex items-center justify-between">
+              <span className="font-serif text-lg font-bold">Notifications{count > 0 && <span className="ml-2 rounded-full bg-brass-300 px-2 py-0.5 font-sans text-xs font-bold text-night-950">{count}</span>}</span>
+              {count > 0 && (
+                <button onClick={() => readAll.mutate()} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-brass-200 transition hover:bg-snow/10">
+                  <CheckCheck className="size-3.5" /> Mark all read
+                </button>
+              )}
+            </div>
+            <div className="mt-2.5 inline-flex rounded-xl bg-snow/10 p-0.5" role="group" aria-label="Show">
+              {([[false, "All"], [true, "Unread"]] as const).map(([v, label]) => (
+                <button key={label} onClick={() => setUnreadOnly(v)} aria-pressed={unreadOnly === v}
+                  className={cn("rounded-lg px-3 py-1 text-xs font-semibold transition", unreadOnly === v ? "bg-snow text-night-950" : "text-night-200 hover:text-snow")}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </header>
           <div className="max-h-[26rem] overflow-y-auto">
             {isLoading && <div className="m-3 h-16 animate-pulse rounded-xl bg-ink-50" />}
-            {!isLoading && !items.length && <p className="py-10 text-center text-sm text-ink-300">You're all caught up.</p>}
-            {items.map((n, i) => {
+            {!isLoading && !shown.length && <EmptyState kind="clear" title="You're all caught up" />}
+            {shown.map((n, i) => {
               const Icon = ICON[n.kind] ?? Bell;
               return (
                 <button key={n.id} onClick={() => go(n)} style={{ animationDelay: `${i * 25}ms` }}
