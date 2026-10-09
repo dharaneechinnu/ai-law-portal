@@ -7,6 +7,10 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from app.providers.base import EmbeddingProvider, LLMProvider
 
+# A slow or queued provider must never hold a request (or a server reload) for minutes.
+TIMEOUT = 90
+RETRIES = 1
+
 
 class LangChainLLM(LLMProvider):
     """Wraps any LangChain chat model."""
@@ -45,7 +49,7 @@ class LangChainEmbeddings(EmbeddingProvider):
 class OpenAICompatibleLLM(LangChainLLM):
     def __init__(self, base_url: str | None, api_key: str | None, model: str):
         super().__init__(ChatOpenAI(base_url=base_url or None, api_key=api_key or "not-needed", model=model,
-                                    temperature=0.1), model)
+                                    temperature=0.1, timeout=TIMEOUT, max_retries=RETRIES), model)
 
 
 class OpenAICompatibleEmbeddings(LangChainEmbeddings):
@@ -59,6 +63,7 @@ class OpenAICompatibleEmbeddings(LangChainEmbeddings):
                 model=model,
                 dimensions=dimensions,  # only sent for models that can shorten their vectors (OpenAI 3-series, Gemini)
                 check_embedding_ctx_length=False,  # non-OpenAI servers don't use OpenAI's tokenizer
+                request_timeout=TIMEOUT, max_retries=RETRIES,
                 model_kwargs={"extra_body": {"input_type": input_type, "truncate": "END"}} if input_type else {},
             )
         super().__init__(make("passage" if asymmetric else None), make("query") if asymmetric else None)
