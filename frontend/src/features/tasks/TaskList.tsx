@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, Check, Flag, Lock, Plus, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState, Tabs } from "@/components/ui/page";
 import { useAuth } from "@/features/auth/AuthContext";
 import { api, errorMessage } from "@/services/api";
 import { cn } from "@/lib/utils";
@@ -115,7 +117,7 @@ function Row({ t, i, showMatter, onOpen }: { t: Task; i: number; showMatter: boo
         <span className={cn("block truncate text-sm transition-colors", done ? "text-ink-300 line-through" : "text-ink-900")}>{t.title}</span>
         <span className="flex items-center gap-2 text-xs text-ink-400">
           {showMatter && t.matter_title && <span className="truncate">{t.matter_title}</span>}
-          {t.assignee_name && <span className="truncate">· {t.assignee_name}</span>}
+          {t.assignee_name && <span className="truncate">{showMatter && t.matter_title ? "· " : ""}{t.assignee_name}</span>}
           {t.blocked && !done && <span className="flex items-center gap-1 text-amber-600"><Lock className="size-3" /> Waiting</span>}
         </span>
       </button>
@@ -144,10 +146,10 @@ function Drawer({ t, all, onClose }: { t: Task; all: Task[]; onClose: () => void
   });
   const options = all.filter((o) => o.id !== t.id && o.status !== "archived" && !f.depends_on.includes(o.id));
   const byId = new Map(all.map((o) => [o.id, o]));
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-40 flex justify-end">
       <div className="absolute inset-0 animate-fade-in bg-ink-950/30 backdrop-blur-[2px]" onClick={onClose} />
-      <aside className="relative flex h-full w-full max-w-md animate-slide-in flex-col bg-white shadow-2xl">
+      <aside role="dialog" aria-label="Task" className="relative flex h-full w-full max-w-md animate-slide-in flex-col bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b border-ink-50 px-5 py-4">
           <h2 className="text-sm font-semibold text-ink-700">Task</h2>
           <button onClick={onClose} aria-label="Close" className="grid size-8 place-items-center rounded-lg text-ink-300 hover:bg-ink-50 hover:text-ink-600">
@@ -212,7 +214,8 @@ function Drawer({ t, all, onClose }: { t: Task; all: Task[]; onClose: () => void
           <Button size="sm" form="task-form" disabled={!f.title.trim() || save.isPending}>Save</Button>
         </footer>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -243,24 +246,22 @@ export function TaskList({ matterId, scope = "all" }: { matterId?: string; scope
   return (
     <div>
       <QuickAdd matterId={matterId} onAdded={() => { qc.invalidateQueries({ queryKey: ["tasks"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); }} />
-      <div className="mb-3 inline-flex rounded-xl bg-ink-50 p-1">
-        {STATUS_TABS.map(([s, label]) => (
-          <button key={s} onClick={() => setStatus(s)}
-            className={cn("rounded-lg px-3 py-1.5 text-sm transition-all", status === s ? "bg-white font-medium text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-700")}>
-            {label}
-          </button>
-        ))}
-      </div>
+      <div className="mb-3 flex"><Tabs label="Task status" value={status} onChange={setStatus} items={STATUS_TABS} /></div>
       {isLoading && <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-ink-50" />)}</div>}
       {!isLoading && !tasks.length && (
-        <p className="animate-fade-in py-10 text-center text-sm text-ink-300">
-          {status === "open" ? "No open tasks." : status === "done" ? "Nothing done yet." : "Nothing archived."}
-        </p>
+        <EmptyState kind={status === "open" ? "clear" : "inbox"}
+          title={status === "open" ? "No open tasks" : status === "done" ? "Nothing done yet" : "Nothing archived"}
+          hint={status === "open" ? "Add one above, or enjoy the quiet." : undefined} />
       )}
       <div className="space-y-4">
         {grouped.map(([g, list]) => (
           <section key={g || status}>
-            {g && <h3 className={cn("mb-1 px-3 text-xs font-semibold uppercase tracking-[0.12em]", g === "Overdue" ? "text-red-600" : "text-ink-400")}>{g} · {list.length}</h3>}
+            {g && (
+              <h3 className={cn("mb-1 flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-[0.12em]", g === "Overdue" ? "text-red-600" : "text-ink-400")}>
+                {g === "Overdue" && <span className="size-1.5 animate-pulse rounded-full bg-red-500" />}{g}
+                <span className={cn("rounded-full px-1.5 py-px text-[10px]", g === "Overdue" ? "bg-red-50" : "bg-ink-50")}>{list.length}</span>
+              </h3>
+            )}
             {list.map((t, i) => <Row key={t.id} t={t} i={i} showMatter={!matterId} onOpen={() => setOpenId(t.id)} />)}
           </section>
         ))}

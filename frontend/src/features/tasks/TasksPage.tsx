@@ -1,26 +1,35 @@
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { ListChecks } from "lucide-react";
+import { PageHero, Tabs } from "@/components/ui/page";
+import { api } from "@/services/api";
+import type { Task } from "@/types";
 import { TaskList } from "./TaskList";
 
 export function TasksPage() {
   const [scope, setScope] = useState<"mine" | "all">("mine");
+  const open = useQuery({ queryKey: ["tasks", "", scope, "open"], queryFn: () => api<Task[]>(`/tasks?status=open&scope=${scope}`) });
+  const done = useQuery({ queryKey: ["tasks", "", scope, "done"], queryFn: () => api<Task[]>(`/tasks?status=done&scope=${scope}`) });
+  const nOpen = open.data?.length ?? 0;
+  const nDone = done.data?.length ?? 0;
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  const overdue = (open.data ?? []).filter((t) => t.due_at && new Date(t.due_at) < start).length;
+  const pct = nOpen + nDone ? Math.round((nDone / (nOpen + nDone)) * 100) : 0;
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6 flex animate-fade-up items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl text-ink-900">Tasks</h1>
-          <p className="mt-1 text-sm text-ink-400">{scope === "mine" ? "Assigned to you." : "Across the matters you can open."}</p>
+    <div className="flex flex-col gap-[18px]">
+      <PageHero icon={ListChecks} eyebrow="Work" title="Tasks"
+        sub={`${nOpen} open${overdue ? `, ${overdue} overdue` : ""}. ${scope === "mine" ? "Assigned to you." : "Across the matters you can open."}`}>
+        <div className="mt-4 w-full max-w-md">
+          <div className="mb-1.5 flex justify-between text-xs font-medium text-night-200"><span>{nDone} done</span><span>{pct}%</span></div>
+          <div className="h-2 overflow-hidden rounded-full bg-snow/10">
+            <div key={`${scope}${pct}`} className="h-full origin-left animate-grow rounded-full bg-gradient-to-r from-brass-300 to-brass-500" style={{ width: `${pct}%` }} />
+          </div>
         </div>
-        <div className="inline-flex rounded-xl bg-ink-50 p-1">
-          {(["mine", "all"] as const).map((s) => (
-            <button key={s} onClick={() => setScope(s)}
-              className={cn("rounded-lg px-3 py-1.5 text-sm transition-all", scope === s ? "bg-white font-medium text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-700")}>
-              {s === "mine" ? "Mine" : "Everyone"}
-            </button>
-          ))}
-        </div>
+      </PageHero>
+      <Tabs label="Whose tasks" value={scope} onChange={setScope} items={[["mine", "Mine"], ["all", "Everyone"]]} />
+      <div className="rounded-[20px] border border-ink-100 bg-white p-4 md:p-5">
+        <TaskList key={scope} scope={scope} />
       </div>
-      <TaskList key={scope} scope={scope} />
     </div>
   );
 }
