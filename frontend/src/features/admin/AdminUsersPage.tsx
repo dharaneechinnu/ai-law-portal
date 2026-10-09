@@ -9,6 +9,7 @@ import { useAuth } from "@/features/auth/AuthContext";
 import { PrimaryButton } from "@/features/auth/AuthShell";
 import { PasswordStrength } from "@/features/auth/PasswordStrength";
 import { cn } from "@/lib/utils";
+import { PageHero, heroButton } from "@/components/ui/page";
 import { api, errorMessage } from "@/services/api";
 import type { AdminUser, AdminUserCreated, UserStatus } from "@/types";
 import { ROLES, initials, inviteUrl, relativeTime, roleMeta } from "./roles";
@@ -23,7 +24,7 @@ const STATUS: Record<UserStatus, { label: string; cls: string; dot: string }> = 
 function StatCard({ icon, label, value, tone, delay }: { icon: ReactNode; label: string; value: number; tone: string; delay: number }) {
   const n = useCountUp(value);
   return (
-    <div className="animate-fade-up rounded-2xl border border-ink-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    <div className="animate-fade-up rounded-[20px] border border-ink-100 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(7,13,32,0.08)]"
       style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-ink-500">{label}</span>
@@ -222,27 +223,12 @@ export function AdminUsersPage() {
     (!q || `${u.name} ${u.email} ${u.designation ?? ""}`.toLowerCase().includes(q.toLowerCase())));
 
   return (
-    <div className="-m-8 min-h-screen bg-ink-50/50">
-      {/* hero */}
-      <div className="relative overflow-hidden bg-ink-950 px-8 pb-24 pt-10">
-        <div className="pointer-events-none absolute -right-20 -top-24 size-80 rounded-full bg-brass-500/25 blur-3xl animate-drift" />
-        <div className="pointer-events-none absolute -left-24 top-10 size-72 rounded-full bg-ink-500/40 blur-3xl animate-drift" style={{ animationDelay: "-7s" }} />
-        <div className="relative flex flex-wrap items-end justify-between gap-6">
-          <div className="animate-fade-up">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brass-300">
-              <ShieldCheck className="size-4" /> Admin · {me?.firm_name ?? "Your firm"}
-            </div>
-            <h1 className="font-serif text-4xl font-bold text-white">Team & access</h1>
-            <p className="mt-2 max-w-xl text-ink-200/80">Create logins for your firm, set each person's role, and turn access off the moment someone leaves.</p>
-          </div>
-          <button onClick={() => setCreating(true)}
-            className="inline-flex h-11 animate-fade-up items-center gap-2 rounded-xl bg-gradient-to-br from-brass-300 to-brass-500 px-5 text-sm font-semibold text-ink-950 shadow-lg shadow-brass-500/30 transition hover:-translate-y-0.5 hover:shadow-xl">
-            <UserPlus className="size-4" /> Add team member
-          </button>
-        </div>
-      </div>
+    <div className="flex flex-col gap-[18px]">
+      <PageHero icon={ShieldCheck} eyebrow={`Admin · ${me?.firm_name ?? "Your firm"}`} title="Team & access"
+        sub="Create logins for your firm, set each person's role, and turn access off the moment someone leaves."
+        actions={<button onClick={() => setCreating(true)} className={heroButton}><UserPlus className="size-4" /> Add team member</button>} />
 
-      <div className="relative -mt-16 space-y-6 px-8 pb-12">
+      <div className="space-y-[18px]">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Total members" value={counts.total} delay={0} tone="bg-ink-100 text-ink-700" icon={<Users className="size-4" />} />
           <StatCard label="Active" value={counts.active} delay={80} tone="bg-emerald-50 text-emerald-600" icon={<UserCheck className="size-4" />} />
@@ -250,7 +236,7 @@ export function AdminUsersPage() {
           <StatCard label="Disabled" value={counts.disabled} delay={240} tone="bg-ink-50 text-ink-400" icon={<UserX className="size-4" />} />
         </div>
 
-        <div className="animate-fade-up overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-sm" style={{ animationDelay: "200ms" }}>
+        <div className="animate-fade-up overflow-hidden rounded-[20px] border border-ink-100 bg-white" style={{ animationDelay: "200ms" }}>
           <div className="flex flex-wrap items-center gap-3 border-b border-ink-100 p-4">
             <div className="relative min-w-56 flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-300" />

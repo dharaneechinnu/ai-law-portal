@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, Copy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -54,7 +55,7 @@ export function Modal({ open, onClose, children, side = false, title }: {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 animate-fade-in bg-ink-950/50 backdrop-blur-sm" onClick={onClose} />
       <div className={cn(
@@ -69,7 +70,8 @@ export function Modal({ open, onClose, children, side = false, title }: {
         </div>
         <div className={cn("p-6", side && "flex-1 overflow-y-auto")}>{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
