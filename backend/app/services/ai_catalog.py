@@ -67,6 +67,9 @@ PROVIDERS: list[dict] = [
            "https://dashboard.cohere.com/api-keys", ["command-a-03-2025", "command-r-plus"]),
     _cloud("perplexity", "Perplexity", "https://api.perplexity.ai", "Sonar models with web search. Chat only; no agents.",
            "https://www.perplexity.ai/settings/api", ["sonar", "sonar-pro"], tools=False),
+    _cloud("nvidia", "NVIDIA", "https://integrate.api.nvidia.com/v1",
+           "Llama, Nemotron, DeepSeek and more on NVIDIA NIM. Chat only.", "https://build.nvidia.com/",
+           ["meta/llama-3.3-70b-instruct", "nvidia/llama-3.1-nemotron-70b-instruct", "deepseek-ai/deepseek-r1"]),
     _cloud("huggingface", "Hugging Face", "https://router.huggingface.co/v1", "Open models via Inference Providers. Chat only.",
            "https://huggingface.co/settings/tokens", ["meta-llama/Llama-3.3-70B-Instruct"]),
     dict(id="ollama", name="Ollama", group="On your computer", adapter="openai", base_url="http://localhost:11434/v1",
@@ -104,6 +107,8 @@ PRICING = {
     "fireworks": ("paid", "Pay per use."),
     "cohere": ("free_tier", "Free trial key for testing only; a paid key for real use."),
     "perplexity": ("paid", "Pay per use."),
+    "nvidia": ("free_tier", "Free developer access for testing, with rate limits. Production use needs an "
+                            "NVIDIA AI Enterprise licence."),
     "huggingface": ("free_tier", "Small free monthly credit; pay as you go after that."),
     "ollama": ("free", "Free. Runs on your computer; nothing leaves the firm."),
     "lmstudio": ("free", "Free. Runs on your computer; nothing leaves the firm."),

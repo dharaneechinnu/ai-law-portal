@@ -65,7 +65,7 @@ def config(url, chat_kind="openai_compatible", embed=None, key="sk-local-secret"
 def test_catalog_lists_providers_without_internals(client, admin):
     rows = client.get("/api/settings/ai/providers", headers=headers(admin)).json()
     ids = {p["id"] for p in rows}
-    assert {"openai", "anthropic", "google", "azure_openai", "bedrock", "mistral", "groq", "ollama",
+    assert {"openai", "anthropic", "google", "azure_openai", "bedrock", "mistral", "groq", "nvidia", "ollama",
             "openai_compatible"} <= ids
     assert all("adapter" not in p for p in rows)
     anthropic = next(p for p in rows if p["id"] == "anthropic")

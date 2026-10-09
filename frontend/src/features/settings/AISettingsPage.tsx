@@ -21,7 +21,7 @@ const TINT: Record<string, string> = {
   groq: "from-rose-400 to-red-600", deepseek: "from-blue-400 to-indigo-700", xai: "from-slate-500 to-slate-900",
   openrouter: "from-violet-400 to-purple-700", together: "from-cyan-400 to-blue-600", fireworks: "from-fuchsia-400 to-purple-700",
   cohere: "from-teal-300 to-emerald-700", perplexity: "from-teal-400 to-cyan-700", huggingface: "from-yellow-300 to-amber-500",
-  ollama: "from-zinc-500 to-zinc-800", lmstudio: "from-indigo-400 to-violet-700", vllm: "from-amber-300 to-yellow-600",
+  nvidia: "from-lime-400 to-green-700", ollama: "from-zinc-500 to-zinc-800", lmstudio: "from-indigo-400 to-violet-700", vllm: "from-amber-300 to-yellow-600",
   openai_compatible: "from-brass-300 to-brass-600",
 };
 
