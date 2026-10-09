@@ -144,6 +144,19 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       admins, own for others). `/analytics`: firm (overdue, hearings, matter age, workload by person, practice areas), legal
       (unreviewed and high-impact alerts), AI (ran / asked / blocked, approved / rejected / waiting, top actions, agents, models).
 
+## Role gaps — planned (from the Partner / Lawyer / Associate / Paralegal review)
+
+- [ ] **Billing & time** — Time entries, rates, invoices, payments, billing tab per case; partner/admin only by default.
+      Gap for Partner, Lawyer, Associate. Needs decisions: hourly vs fixed fee; who sees billing.
+- [ ] **Drafting** — Templates, AI drafts from case documents (with citations), versions, lawyer review, Word/PDF export. Gap for Associate.
+- [ ] **Document management** — Folders/tags, versions, search across all documents, preview/download, document checklist, archive.
+      Gap for Paralegal and Lawyer.
+- [ ] **Client profile** — One page per client: cases, documents, contacts, history, billing summary. Gap for Partner and Lawyer.
+- [ ] **Reports** — Per-client and per-lawyer reports, PDF/Excel export, scheduled email reports. Gap for Partner.
+- [ ] **Task templates & recurring tasks** — Intake checklists, monthly filing checks. Gap for Paralegal admin work.
+- [ ] **Finer role rules** — Limit who creates clients/cases (today any role can); paralegal limited mode; partner-only areas.
+      Needs decisions on who may do what.
+
 ## Open Items / Needs From You
 
 - [ ] eCourts API: base URL, auth header, endpoint paths and a sample response, to fill in Settings → Legal data (the API key is in hand; nothing is invented).

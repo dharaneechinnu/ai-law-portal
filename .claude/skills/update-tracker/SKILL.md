@@ -12,7 +12,7 @@ Spreadsheet ID: `12W3UFdPmQwounF4CWLC8Exx52Ok5wfOF8g0BiOdKelQ`
 
 ## Sheet layout
 
-- **One tab per feature**, named for the feature (Login, Roles & Permissions, Case Access Control, Team Management, Email Sending, My Account, Clients, Matters, Case Timeline, Document Upload, Ask AI, AI Provider Settings, Dashboard, Daily Briefing, Notifications, Tasks, Calendar & Hearings, People, Legal Intelligence, Case Comparison, Legal Alerts, AI Agents, Approval System, Kill Switch & Overrides, Integration Settings, Audit Log, Analytics).
+- **One tab per feature**, named for the feature (Login, Roles & Permissions, Case Access Control, Team Management, Email Sending, My Account, Clients, Matters, Case Timeline, Document Upload, Ask AI, AI Provider Settings, Dashboard, Daily Briefing, Notifications, Tasks, Calendar & Hearings, People, Legal Intelligence, Case Comparison, Legal Alerts, AI Agents, Approval System, Kill Switch & Overrides, Integration Settings, Audit Log, Analytics, Billing & Time, Drafting, Document Management, Client Profile, Reports).
 - Each feature tab has columns `# | Task | Details | Status | Notes`. Status is column D and is one of `Done`, `Scaffolded`, `Not started`.
 - The `Feature Tracker` tab is the overview list. Update its Status column (E) when a feature as a whole changes.
 
