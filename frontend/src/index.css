@@ -181,3 +181,5 @@ kbd {
 @keyframes dock-in-right { from { opacity: 0; transform: translateX(28px) } to { opacity: 1; transform: none } }
 @keyframes dock-in-bottom { from { opacity: 0; transform: translateY(28px) } to { opacity: 1; transform: none } }
 @keyframes slide-in-left { from { transform: translateX(-100%) } to { transform: none } }
+@keyframes stamp { 0%, 100% { transform: translateY(-6px) } 45% { transform: translateY(-6px) } 55% { transform: translateY(6px) } 65% { transform: translateY(0) } }
+@keyframes stamp-in { 0% { opacity: 0; transform: scale(1.8) rotate(-14deg) } 60% { opacity: 1; transform: scale(0.92) rotate(-8deg) } 100% { opacity: 1; transform: scale(1) rotate(-8deg) } }

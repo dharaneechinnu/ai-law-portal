@@ -113,3 +113,28 @@ export function EmptySpot({ kind = "clear", className }: { kind?: "clear" | "sea
     </svg>
   );
 }
+
+/** Approvals hero: a stamp pressing a signed document. */
+export function StampSpot({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 220 160" className={className} aria-hidden="true">
+      <ellipse cx="110" cy="150" rx="86" ry="7" className="fill-night-950/30" />
+      <g className="animate-float-slow">
+        <rect x="40" y="46" width="120" height="96" rx="10" className="fill-snow" />
+        <rect x="56" y="64" width="64" height="5" rx="2.5" className="fill-night-200" />
+        <rect x="56" y="78" width="88" height="5" rx="2.5" className="fill-night-200" />
+        <rect x="56" y="92" width="52" height="5" rx="2.5" className="fill-night-200" />
+        <circle cx="128" cy="116" r="15" fill="none" strokeWidth="3" className="stroke-emerald-600" />
+        <path d="M121 116 l5 5 l9 -10" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+          strokeDasharray="60" className="animate-draw stroke-emerald-600" />
+      </g>
+      <g className="animate-[stamp_2.8s_ease-in-out_infinite]">
+        <rect x="150" y="8" width="18" height="30" rx="7" className="fill-brass-400" />
+        <rect x="138" y="36" width="42" height="12" rx="4" className="fill-night-600" />
+        <rect x="134" y="48" width="50" height="7" rx="3" className="fill-brass-500" />
+      </g>
+      <Sparkle x={26} y={40} s={0.7} />
+      <Sparkle x={200} y={92} s={0.6} d={1} />
+    </svg>
+  );
+}
