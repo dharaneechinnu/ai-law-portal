@@ -50,7 +50,7 @@ PROVIDERS: list[dict] = [
     _cloud("mistral", "Mistral AI", "https://api.mistral.ai/v1", "Mistral models. Chat and embeddings.",
            "https://console.mistral.ai/api-keys", ["mistral-large-latest", "mistral-small-latest"], ["mistral-embed"]),
     _cloud("groq", "Groq", "https://api.groq.com/openai/v1", "Very fast open models. Chat only.",
-           "https://console.groq.com/keys", ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]),
+           "https://console.groq.com/keys", ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]),
     _cloud("deepseek", "DeepSeek", "https://api.deepseek.com/v1", "DeepSeek models. Chat only.",
            "https://platform.deepseek.com/api_keys", ["deepseek-chat", "deepseek-reasoner"]),
     _cloud("xai", "xAI Grok", "https://api.x.ai/v1", "Grok models. Chat only.", "https://console.x.ai/",
