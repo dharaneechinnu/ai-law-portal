@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, BarChart3 } from "lucide-react";
+import { PageHero, Tabs } from "@/components/ui/page";
 import { useCountUp } from "@/features/dashboard/widgets";
 import { api } from "@/services/api";
 import { cn } from "@/lib/utils";
@@ -12,8 +13,9 @@ const RANGES = [7, 30, 90] as const;
 function Tile({ label, value, hint, warn }: { label: string; value: number; hint?: string; warn?: boolean }) {
   const n = useCountUp(value);
   return (
-    <div className="rounded-xl border border-ink-100 bg-white px-4 py-3">
-      <div className="text-2xl font-semibold tabular-nums text-ink-900">{n}</div>
+    <div className={cn("relative overflow-hidden rounded-2xl border border-ink-100 bg-white px-4 pb-3 pt-4 transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(7,13,32,0.08)]",
+      "before:absolute before:inset-x-0 before:top-0 before:h-1", warn && value > 0 ? "before:bg-red-500" : "before:bg-gradient-to-r before:from-brass-300 before:to-brass-500")}>
+      <div className="text-[1.7rem] font-bold leading-tight tabular-nums text-ink-900">{n}</div>
       <div className="mt-0.5 flex items-center gap-1 text-xs text-ink-500">
         {warn && value > 0 && <AlertTriangle className="size-3 text-red-600" aria-label="Needs attention" />}
         {label}
@@ -27,8 +29,8 @@ function Tile({ label, value, hint, warn }: { label: string; value: number; hint
 function BarList({ title, rows, empty, unit }: { title: string; rows: Bar[]; empty: string; unit: string }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
-    <section className="rounded-2xl border border-ink-100 bg-white p-4">
-      <h3 className="mb-3 text-sm font-semibold text-ink-700">{title}</h3>
+    <section className="rounded-[20px] border border-ink-100 bg-white p-5">
+      <h3 className="mb-3 font-serif text-base font-bold text-ink-900">{title}</h3>
       {!rows.length && <p className="py-4 text-center text-sm text-ink-300">{empty}</p>}
       <div className="space-y-2" role="list">
         {rows.map((r, i) => {
@@ -62,8 +64,8 @@ function Section({ title, sub, children }: { title: string; sub: string; childre
   return (
     <section className="animate-fade-up space-y-3">
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink-500">{title}</h2>
-        <p className="text-xs text-ink-400">{sub}</p>
+        <h2 className="font-serif text-xl font-bold text-ink-900">{title}</h2>
+        <p className="text-sm text-ink-400">{sub}</p>
       </div>
       {children}
     </section>
@@ -75,26 +77,16 @@ export function AnalyticsPage() {
   const { data, isLoading, isError } = useQuery({ queryKey: ["analytics", days], queryFn: () => api<Analytics>(`/analytics?days=${days}`) });
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="mb-6 flex flex-wrap animate-fade-up items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl text-ink-900">Analytics</h1>
-          <p className="mt-1 text-sm text-ink-400">Matters you can open, last {days} days.</p>
-        </div>
-        <div className="inline-flex rounded-xl bg-ink-50 p-1" role="group" aria-label="Time range">
-          {RANGES.map((d) => (
-            <button key={d} onClick={() => setDays(d)} aria-pressed={days === d}
-              className={cn("rounded-lg px-3 py-1.5 text-sm tabular-nums transition-all", days === d ? "bg-white font-medium text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-700")}>
-              {d} days
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="flex flex-col gap-[18px]">
+      <PageHero icon={BarChart3} eyebrow="Intelligence" title="Analytics"
+        sub={`Late work, waiting alerts and how AI is used, across the matters you can open. Last ${days} days.`} />
+      <Tabs label="Time range" value={String(days)} onChange={(v) => setDays(Number(v) as (typeof RANGES)[number])}
+        items={RANGES.map((d) => [String(d), `${d} days`] as const)} />
 
-      {isLoading && <div className="grid gap-3 sm:grid-cols-3">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-ink-50" />)}</div>}
+      {isLoading && <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-ink-100/60" />)}</div>}
       {isError && <p className="text-sm text-red-600">Couldn't load analytics.</p>}
       {data && (
-        <div key={days} className="space-y-10">
+        <div key={days} className="space-y-8">
           <Section title="Firm" sub="Where work is late or piling up.">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               <Tile label="Active matters" value={data.firm.active_matters} />

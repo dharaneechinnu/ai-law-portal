@@ -16,7 +16,12 @@ HIGH_IMPACT = 0.8
 
 
 def _bars(rows) -> list[dict]:
-    return [{"label": str(k or "Not set"), "value": int(v)} for k, v in rows]
+    # NULL and "" both read as "Not set"; merge them so each label appears once, keeping the input order.
+    merged: dict[str, int] = {}
+    for k, v in rows:
+        label = str(k or "Not set")
+        merged[label] = merged.get(label, 0) + int(v)
+    return [{"label": k, "value": v} for k, v in merged.items()]
 
 
 def firm(db: Session, user: User, since: datetime) -> dict:
