@@ -12,7 +12,7 @@ export interface User {
   notification_prefs: Record<string, boolean>;
   daily_briefing_time?: string | null;
   ai_prefs: Record<string, string>;
-  dashboard_layout?: { widgets?: { id: string; size: "half" | "full"; hidden: boolean }[] };
+  dashboard_layout?: { widgets?: { id: string; size: "half" | "full"; hidden: boolean; w?: number; h?: number }[] };
   firm_name?: string | null;
 }
 

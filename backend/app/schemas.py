@@ -64,8 +64,12 @@ class ProfileUpdate(BaseModel):
         for w in widgets:
             if not isinstance(w, dict) or not isinstance(w.get("id"), str) or len(w["id"]) > 40:
                 raise ValueError("Invalid dashboard layout")
-            clean.append({"id": w["id"], "size": "full" if w.get("size") == "full" else "half",
-                          "hidden": bool(w.get("hidden"))})
+            item = {"id": w["id"], "size": "full" if w.get("size") == "full" else "half", "hidden": bool(w.get("hidden"))}
+            # Optional grid size: width in columns (3-12 of 12) and height in rows (2-8), clamped.
+            for key, lo, hi in (("w", 3, 12), ("h", 2, 8)):
+                if isinstance(w.get(key), int) and not isinstance(w.get(key), bool):
+                    item[key] = min(hi, max(lo, w[key]))
+            clean.append(item)
         return {"widgets": clean}
 
     @field_validator("timezone")

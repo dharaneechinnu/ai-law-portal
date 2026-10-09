@@ -11,6 +11,13 @@ def test_dashboard_layout_saved_and_validated(client, admin):
     r = client.patch("/api/auth/me", headers=A, json={"dashboard_layout": {"widgets": [{"id": "today", "size": "full", "hidden": False}]}})
     assert r.status_code == 200 and r.json()["dashboard_layout"]["widgets"][0]["id"] == "today"
     assert client.patch("/api/auth/me", headers=A, json={"dashboard_layout": {"widgets": "bad"}}).status_code == 422
+    # width/height are kept and clamped; junk values are dropped
+    r = client.patch("/api/auth/me", headers=A, json={"dashboard_layout": {"widgets": [
+        {"id": "today", "size": "half", "hidden": False, "w": 40, "h": 1},
+        {"id": "stats", "size": "full", "hidden": False, "w": "wide", "h": True},
+    ]}})
+    w = r.json()["dashboard_layout"]["widgets"]
+    assert (w[0]["w"], w[0]["h"]) == (12, 2) and "w" not in w[1] and "h" not in w[1]
 
 
 def test_task_dependencies_loops_and_timeline(client, admin, matter):

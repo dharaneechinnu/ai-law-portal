@@ -11,20 +11,23 @@ import { BriefingCard } from "./BriefingCard";
 
 export type WidgetId = "briefing" | "stats" | "approvals" | "today" | "overdue" | "alerts" | "matters";
 export type Size = "half" | "full";
-export interface WidgetLayout { id: WidgetId; size: Size; hidden: boolean }
+/** `w`: width in columns of a 12-column grid (3-12). `h`: height in grid rows (2-8). */
+export interface WidgetLayout { id: WidgetId; size: Size; hidden: boolean; w: number; h: number }
 
-export const WIDGETS: Record<WidgetId, { title: string; hint: string; size: Size }> = {
-  briefing: { title: "Daily briefing", hint: "Today in a few lines", size: "full" },
-  stats: { title: "Overview", hint: "Key counts", size: "full" },
-  approvals: { title: "Waiting for your approval", hint: "AI actions to approve", size: "full" },
-  today: { title: "Today", hint: "Hearings and tasks due", size: "half" },
-  overdue: { title: "Overdue", hint: "Tasks past due", size: "half" },
-  alerts: { title: "Legal alerts", hint: "New matching judgments", size: "half" },
-  matters: { title: "Active matters", hint: "Next hearings first", size: "half" },
+export const MIN_W = 3, MAX_W = 12, MIN_H = 2, MAX_H = 8;
+
+export const WIDGETS: Record<WidgetId, { title: string; hint: string; w: number; h: number }> = {
+  briefing: { title: "Daily briefing", hint: "Today in a few lines", w: 12, h: 2 },
+  stats: { title: "Overview", hint: "Key counts", w: 12, h: 2 },
+  approvals: { title: "Waiting for your approval", hint: "AI actions to approve", w: 12, h: 3 },
+  today: { title: "Today", hint: "Hearings and tasks due", w: 6, h: 3 },
+  overdue: { title: "Overdue", hint: "Tasks past due", w: 6, h: 3 },
+  alerts: { title: "Legal alerts", hint: "New matching judgments", w: 6, h: 3 },
+  matters: { title: "Active matters", hint: "Next hearings first", w: 6, h: 3 },
 };
 
 export const DEFAULT_LAYOUT: WidgetLayout[] = (Object.keys(WIDGETS) as WidgetId[]).map((id) => ({
-  id, size: WIDGETS[id].size, hidden: false,
+  id, w: WIDGETS[id].w, h: WIDGETS[id].h, size: WIDGETS[id].w >= 12 ? "full" : "half", hidden: false,
 }));
 
 /** Count up to `value` when it arrives. */
@@ -53,7 +56,7 @@ function Stat({ label, value, tone, to, Icon }: { label: string; value: number; 
       </span>
       <span className="min-w-0">
         <span className={cn("block text-2xl font-bold tabular-nums leading-tight", tone)}>{n}</span>
-        <span className="block truncate text-xs font-medium text-ink-500">{label}</span>
+        <span className="block text-xs font-medium leading-snug text-ink-500">{label}</span>
       </span>
     </Link>
   );
@@ -108,7 +111,7 @@ export function WidgetBody({ id, data }: { id: WidgetId; data: Dashboard }) {
       return <BriefingCard />;
     case "stats":
       return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 @xs:grid-cols-2 @3xl:grid-cols-4">
           <Stat label="Active matters" value={data.stats.open_matters} tone="text-ink-900" to="/matters" Icon={Briefcase} />
           <Stat label="Overdue tasks" value={data.stats.overdue_tasks} tone={data.stats.overdue_tasks ? "text-red-600" : "text-ink-900"} to="/tasks" Icon={AlertTriangle} />
           <Stat label="Hearings this week" value={data.stats.hearings_week} tone="text-ink-900" to="/calendar" Icon={CalendarClock} />
