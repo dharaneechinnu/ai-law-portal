@@ -35,3 +35,9 @@ export const GO_KEYS: Record<string, [string, string]> = {
   s: ["/settings", "Settings"],
   u: ["/account", "Account"],
 };
+
+/** Pages only admins can open (the server refuses the data behind them for everyone else). */
+const ADMIN_PATHS = new Set(["/settings", "/admin/users"]);
+export const canOpen = (path: string, role?: string) => role === "admin" || !ADMIN_PATHS.has(path);
+export const goKeysFor = (role?: string) =>
+  Object.fromEntries(Object.entries(GO_KEYS).filter(([, [to]]) => canOpen(to, role))) as typeof GO_KEYS;
