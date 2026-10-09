@@ -149,7 +149,7 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **App shell** — Navy top bar (logo, search, Ask AI, theme, notifications, settings, account menu) and an icon-only
       navigation dock the user drags to the left, right or bottom (arrow keys on the handle too); saved per browser. Tooltips on hover.
 - [x] **Pages** — Full-width navy cover on every page (shared `PageHero`): dashboard (illustration, approvals card, icon-only
-      Customize), matters, matter workspace, clients, people, tasks, calendar, legal intelligence, approvals (stamp animation),
+      Customize → now every card is moved, resized (width and height) and hidden directly; saved per user), matters, matter workspace, clients, people, tasks, calendar, legal intelligence, approvals (stamp animation),
       analytics, settings (section nav), team & access, account. Sign-in and sign-up keep their existing split-screen design.
 - [ ] Frontend tests for the new shell and pages (verified so far with scripted browser runs only).
 
