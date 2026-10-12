@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Clock, Power, ShieldAlert, Trash2 } from "lucide-react";
+import { Ban, ChevronDown, CircleCheck, Clock, Hand, Power, RotateCcw, ShieldAlert, Trash2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api, errorMessage } from "@/services/api";
 import { cn } from "@/lib/utils";
-import type { AgentControls, PolicyDecision } from "@/types";
+import type { AgentControls, AgentInfo, PolicyDecision, ToolInfo } from "@/types";
 
-const DECISIONS: [PolicyDecision, string, string][] = [
-  ["ALLOWED", "Allow", "bg-emerald-500 text-white"],
-  ["APPROVAL_REQUIRED", "Ask first", "bg-brass-500 text-white"],
-  ["DISABLED", "Off", "bg-ink-700 text-white"],
+const PERMS: [PolicyDecision, string, LucideIcon, string][] = [
+  ["ALLOWED", "Always allow", CircleCheck, "bg-emerald-600 text-white"],
+  ["APPROVAL_REQUIRED", "Needs approval", Hand, "bg-brass-500 text-white"],
+  ["DISABLED", "Blocked", Ban, "bg-ink-800 text-white"],
 ];
 const MODES = [["suggest", "Suggest"], ["approval", "Ask first"], ["autonomous", "Autonomous"]] as const;
 const HOURS = [1, 4, 24, 72];
@@ -28,6 +28,114 @@ function Segmented<T extends string>({ value, options, onChange, disabled }: {
         </button>
       ))}
     </div>
+  );
+}
+
+type Put = (path: string, body: unknown, method?: string) => void;
+
+function ToolGroup({ title, tools, scope, kill, put, hint }: {
+  title: string; tools: ToolInfo[]; scope: string; kill: boolean; put: Put; hint?: string;
+}) {
+  const [open, setOpen] = useState(true);
+  const decisions = new Set(tools.map((t) => t.decision));
+  const all = decisions.size === 1 ? [...decisions][0] : "";
+  const locked = kill && tools.some((t) => t.is_mutation);
+  return (
+    <div className="border-b border-ink-50 last:border-0">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+          <ChevronDown className={cn("size-4 text-ink-400 transition-transform", !open && "-rotate-90")} />
+          <span className="font-medium text-ink-900">{title}</span>
+          <span className="rounded-md bg-ink-50 px-1.5 text-xs font-semibold text-ink-500">{tools.length}</span>
+        </button>
+        <select value={all} disabled={locked} aria-label={`${title}: set all`}
+          onChange={(e) => e.target.value && put("/agents/policies", { actions: tools.map((t) => t.action), decision: e.target.value, agent_key: scope || null })}
+          className={cn(control, "font-medium disabled:opacity-50")}>
+          {!all && <option value="">Custom</option>}
+          {PERMS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+      </div>
+      {open && (
+        <div className="pb-1">
+          {tools.map((t) => (
+            <div key={t.action} className="flex flex-wrap items-center gap-3 border-t border-ink-50 py-2.5 pl-10 pr-4">
+              <div className="min-w-48 flex-1">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-ink-800">
+                  {t.label}
+                  {t.is_destructive && <span className="rounded bg-red-50 px-1.5 text-[10px] font-semibold uppercase text-red-600">Destructive</span>}
+                  {t.is_external && <span className="rounded bg-amber-50 px-1.5 text-[10px] font-semibold uppercase text-amber-700">External</span>}
+                  {scope && !t.inherited && (
+                    <button onClick={() => put(`/agents/policies/${t.action}?agent_key=${scope}`, undefined, "DELETE")}
+                      title="Use the rule for all agents again"
+                      className="inline-flex items-center gap-0.5 rounded bg-brass-100 px-1.5 text-[10px] font-semibold uppercase text-brass-700 hover:brightness-95">
+                      Agent rule <RotateCcw className="size-2.5" />
+                    </button>
+                  )}
+                </div>
+                <div className="text-xs text-ink-400">{t.description}</div>
+              </div>
+              <div className={cn("inline-flex gap-0.5 rounded-lg bg-ink-50 p-0.5", kill && t.is_mutation && "opacity-50")} role="radiogroup" aria-label={t.label}>
+                {PERMS.map(([v, label, Icon, active]) => (
+                  <button key={v} role="radio" aria-checked={t.decision === v} aria-label={label} title={label}
+                    disabled={kill && t.is_mutation}
+                    onClick={() => v !== t.decision && put(`/agents/policies/${t.action}`, { decision: v, agent_key: scope || null })}
+                    className={cn("grid size-8 place-items-center rounded-md transition-all duration-200",
+                      t.decision === v ? cn(active, "shadow-sm") : "text-ink-400 hover:bg-white hover:text-ink-700")}>
+                    <Icon className="size-4" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {hint && <p className="px-10 pb-2 pt-1 text-xs text-ink-400">{hint}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Per-tool permissions, firm-wide or for one agent. The server enforces them on every agent action. */
+function ToolPermissions({ agents, kill }: { agents: AgentInfo[]; kill: boolean }) {
+  const qc = useQueryClient();
+  const [scope, setScope] = useState("");
+  const { data } = useQuery({
+    queryKey: ["agent-controls", scope],
+    queryFn: () => api<AgentControls>(`/agents/controls${scope ? `?agent_key=${scope}` : ""}`),
+  });
+  const save = useMutation({
+    mutationFn: ({ path, body, method }: { path: string; body: unknown; method: string }) =>
+      api(path, { method, body: body === undefined ? undefined : JSON.stringify(body) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agent-controls"] }),
+  });
+  const put: Put = (path, body, method = "PUT") => save.mutate({ path, body, method });
+  const tools = data?.tools ?? [];
+  const mode = agents.find((a) => a.key === scope)?.mode;
+
+  return (
+    <section>
+      <div className="mb-3 flex flex-wrap items-end gap-3">
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-ink-700">Tool permissions</h3>
+          <p className="text-xs text-ink-400">Choose when AI is allowed to use these tools.</p>
+        </div>
+        <select value={scope} onChange={(e) => setScope(e.target.value)} className={control} aria-label="Applies to">
+          <option value="">All agents</option>
+          {agents.map((a) => <option key={a.key} value={a.key}>{a.name}</option>)}
+        </select>
+      </div>
+      {!data ? <div className="h-48 animate-pulse rounded-2xl bg-ink-50" /> : (
+        <div className="rounded-2xl border border-ink-100 bg-white">
+          <ToolGroup title="Read-only tools" tools={tools.filter((t) => !t.is_mutation)} scope={scope} kill={kill} put={put} />
+          <ToolGroup title="Write/delete tools" tools={tools.filter((t) => t.is_mutation)} scope={scope} kill={kill} put={put}
+            hint={mode === "autonomous" || (!scope && agents.every((a) => a.mode === "autonomous")) ? undefined
+              : `“Always allow” still asks first while ${scope ? "this agent is" : "an agent is"} in Suggest or Ask-first mode (see Agents above).`} />
+        </div>
+      )}
+      {save.isError && <p className="mt-2 text-xs text-red-600">{errorMessage(save.error)}</p>}
+      <p className="mt-2 text-xs text-ink-400">
+        {scope ? "Rules set here apply to this agent only; tagged tools override the all-agents rule." : "These rules apply to every agent unless an agent has its own rule."}
+      </p>
+    </section>
   );
 }
 
@@ -88,27 +196,7 @@ export function AgentSettings() {
         <p className="mt-2 text-xs text-ink-400">Suggest: proposes only. Ask first: changes wait for approval. Autonomous: runs what the rules below allow.</p>
       </section>
 
-      <section>
-        <h3 className="mb-3 text-sm font-semibold text-ink-700">What AI may do</h3>
-        <div className="divide-y divide-ink-50 rounded-2xl border border-ink-100 bg-white">
-          {data.tools.map((t) => (
-            <div key={t.action} className="flex flex-wrap items-center gap-3 px-4 py-3">
-              <div className="min-w-48 flex-1">
-                <div className="flex items-center gap-2 text-sm font-medium text-ink-900">
-                  {t.label}
-                  {t.is_destructive && <span className="rounded bg-red-50 px-1.5 text-[10px] font-semibold uppercase text-red-600">Destructive</span>}
-                  {t.is_external && <span className="rounded bg-amber-50 px-1.5 text-[10px] font-semibold uppercase text-amber-700">External</span>}
-                  {!t.is_mutation && <span className="rounded bg-ink-50 px-1.5 text-[10px] font-semibold uppercase text-ink-400">Read only</span>}
-                </div>
-                <div className="text-xs text-ink-400">{t.description}</div>
-              </div>
-              <Segmented value={t.decision} options={DECISIONS} disabled={kill && t.is_mutation}
-                onChange={(decision) => put.mutate({ path: `/agents/policies/${t.action}`, body: { decision } })} />
-            </div>
-          ))}
-        </div>
-        {put.isError && <p className="mt-2 text-xs text-red-600">{errorMessage(put.error)}</p>}
-      </section>
+      <ToolPermissions agents={data.agents} kill={kill} />
 
       <section>
         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-700"><Clock className="size-4" /> Temporary overrides</h3>

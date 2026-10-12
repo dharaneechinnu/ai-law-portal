@@ -10,11 +10,11 @@ from app.core.db import get_db
 from app.models import Agent, AgentPolicy, ApprovalRequest, Firm, User
 from app.schemas import (
     ActionIn, ActionResultOut, AgentControlsOut, AgentInfoOut, AgentUpdate, ApprovalOut, KillSwitchIn, OverrideIn,
-    OverrideOut, PolicyIn, ToolInfoOut,
+    OverrideOut, PolicyBulkIn, PolicyIn, ToolInfoOut,
 )
 from app.services import agent_runtime, audit
 from app.services.agent_tools import TOOLS
-from app.services.policy import base_decision, kill_switch_on
+from app.services.policy import base_decision, kill_switch_on, stored_rule
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 approvals_router = APIRouter(prefix="/approvals", tags=["approvals"])
@@ -27,8 +27,17 @@ async def request_action(body: ActionIn, db: Session = Depends(get_db), user: Us
     return await agent_runtime.request_action(db, user, body.agent_key, body.action, body.args)
 
 
+def _agent_or_404(db: Session, agent_key: str | None) -> Agent | None:
+    agent = db.scalar(select(Agent).where(Agent.key == agent_key)) if agent_key else None
+    if agent_key and not agent:
+        raise HTTPException(404, "Unknown agent")
+    return agent
+
+
 @router.get("/controls", response_model=AgentControlsOut, dependencies=[admin_only])
-def controls(db: Session = Depends(get_db)):
+def controls(agent_key: str | None = None, db: Session = Depends(get_db)):
+    """Everything on the AI agents settings screen. With `agent_key`, tool decisions are the ones that agent gets."""
+    agent = _agent_or_404(db, agent_key)
     now = datetime.now(timezone.utc)
     agents = db.scalars(select(Agent).order_by(Agent.name)).all()
     keys = {a.id: a.key for a in agents}
@@ -40,7 +49,9 @@ def controls(db: Session = Depends(get_db)):
         agents=[AgentInfoOut(key=a.key, name=a.name, enabled=a.enabled, mode=a.mode) for a in agents],
         tools=[ToolInfoOut(action=t.action, label=t.label, description=t.description, is_mutation=t.is_mutation,
                            is_external=t.is_external, is_destructive=t.is_destructive,
-                           decision=base_decision(db, t.action)) for t in TOOLS.values()],
+                           decision=base_decision(db, t.action, agent),
+                           inherited=not (agent and (r := stored_rule(db, t.action, agent)) and r.agent_id == agent.id))
+               for t in TOOLS.values()],
         overrides=[OverrideOut(id=o.id, action=o.action, agent_key=keys.get(o.agent_id), decision=o.decision,
                                expires_at=o.expires_at, created_by_name=names.get(o.created_by)) for o in overrides],
     )
@@ -61,9 +72,33 @@ def set_kill_switch(body: KillSwitchIn, db: Session = Depends(get_db), user: Use
 def set_policy(action: str, body: PolicyIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
     if action not in TOOLS:
         raise HTTPException(404, "Unknown action")
+    _agent_or_404(db, body.agent_key)
     agent_runtime.set_rule(db, user, action, body.decision, body.agent_key)
     db.commit()
     return {"action": action, "decision": body.decision}
+
+
+@router.put("/policies", dependencies=[admin_only])
+def set_policies(body: PolicyBulkIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
+    """Set one decision for a group of tools (e.g. every read-only tool)."""
+    unknown = [a for a in body.actions if a not in TOOLS]
+    if unknown or not body.actions:
+        raise HTTPException(404, f"Unknown action: {unknown[0] if unknown else '(none)'}")
+    _agent_or_404(db, body.agent_key)
+    for action in dict.fromkeys(body.actions):
+        agent_runtime.set_rule(db, user, action, body.decision, body.agent_key)
+    db.commit()
+    return {"actions": body.actions, "decision": body.decision}
+
+
+@router.delete("/policies/{action}", dependencies=[admin_only])
+def reset_policy(action: str, agent_key: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
+    """Drop an agent's own rule so the all-agents rule applies again."""
+    if action not in TOOLS:
+        raise HTTPException(404, "Unknown action")
+    agent_runtime.clear_rule(db, user, action, _agent_or_404(db, agent_key))
+    db.commit()
+    return {"action": action, "reset": True}
 
 
 @router.post("/overrides", response_model=OverrideOut, status_code=201, dependencies=[admin_only])

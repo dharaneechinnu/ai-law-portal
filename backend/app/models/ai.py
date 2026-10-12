@@ -101,3 +101,16 @@ class AuditLog(IdMixin, Base):
     executed: Mapped[bool | None] = mapped_column(Boolean)
     result: Mapped[dict] = mapped_column(JSON, default=dict)
     provider: Mapped[str | None] = mapped_column(String(100))
+
+
+class AssistantUpload(IdMixin, TimestampMixin, Base):
+    """A file attached in the Ask AI chat. It stays private to its uploader until an approved agent action files it
+    into a matter (document_id is then set)."""
+
+    __tablename__ = "assistant_uploads"
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    filename: Mapped[str] = mapped_column(String(300))
+    mime_type: Mapped[str] = mapped_column(String(100))
+    storage_path: Mapped[str] = mapped_column(String(500))
+    size_bytes: Mapped[int]
+    document_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("documents.id"))

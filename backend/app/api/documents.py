@@ -1,5 +1,4 @@
 import uuid
-from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy import select
@@ -7,18 +6,14 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.api.matters import get_matter_or_404
-from app.core.config import settings
 from app.core.db import get_db
 from app.models import Document, User
 from app.schemas import AskIn, AskOut, DocumentOut
 from app.services import ai_registry, rag
+from app.services.documents import add_document
 from app.services.ingest import process_document
-from app.services.matters import add_timeline
 
 router = APIRouter(prefix="/matters/{matter_id}", tags=["documents"])
-
-ALLOWED = {".pdf", ".docx", ".txt"}
-MAX_BYTES = 50 * 1024 * 1024
 
 
 @router.get("/documents", response_model=list[DocumentOut])
@@ -31,25 +26,9 @@ def list_documents(matter_id: uuid.UUID, db: Session = Depends(get_db), user: Us
 async def upload_document(matter_id: uuid.UUID, background: BackgroundTasks, file: UploadFile = File(...),
                           db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     get_matter_or_404(db, matter_id, user)
-    suffix = Path(file.filename or "").suffix.lower()
-    if suffix not in ALLOWED:
-        raise HTTPException(400, f"Unsupported file type. Allowed: {', '.join(sorted(ALLOWED))}")
-    data = await file.read()
-    if len(data) > MAX_BYTES:
-        raise HTTPException(413, "File too large (max 50 MB)")
-    doc_id = uuid.uuid4()
-    folder = Path(settings.storage_dir) / str(matter_id)
-    folder.mkdir(parents=True, exist_ok=True)
-    path = folder / f"{doc_id}{suffix}"  # stored under a generated name; never trust the client filename on disk
-    path.write_bytes(data)
-    doc = Document(id=doc_id, matter_id=matter_id, uploaded_by=user.id, filename=Path(file.filename).name,
-                   mime_type=file.content_type or "application/octet-stream", storage_path=str(path),
-                   size_bytes=len(data))
-    db.add(doc)
-    add_timeline(db, matter_id, "document_uploaded", f"Document uploaded: {doc.filename}", user.id,
-                 {"document_id": str(doc_id)})
+    doc = add_document(db, user, matter_id, file.filename or "", file.content_type or "", await file.read())
     db.commit()
-    background.add_task(process_document, doc_id)
+    background.add_task(process_document, doc.id)
     return doc
 
 
