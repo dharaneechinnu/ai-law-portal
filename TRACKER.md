@@ -115,6 +115,17 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
       Scheduling agent: FIND_PEOPLE -> CHECK_AVAILABILITY -> CREATE_EVENT (waits for approval) -> approve books it, invitee notified, every step audited. Verified end to end.
 - [x] **Permission demo flow** — "Delete this task" is blocked while DISABLED; after the admin flips the policy it becomes approval-required or allowed and executes.
       Verified via the API: DELETE_TASK blocked while Off, waits for approval after the admin switches it to Ask first, runs once approved. Also verified through the Task agent chat.
+- [x] **Ask AI general agent** — One assistant that can use every tool: "upload this file for this case and email it to the client".
+      `assistant` agent (default in the panel). Chat attachments (`POST /api/assistant/uploads`, `assistant_uploads` table, private to
+      the uploader) and the open matter page ("this case") are passed as checked context. New tools: GET_MATTER, LIST_DOCUMENTS
+      (read-only), ATTACH_FILE (files a chat upload into a matter, then indexes it), SEND_EMAIL now attaches matter documents or uploads.
+- [x] **In-chat approval + resume** — When a tool call is held for approval the LangGraph run pauses (no later step runs on an
+      unapproved action). Approve/Reject cards in the chat; once all are decided `POST /api/assistant/chat/{id}/resume` replaces the held
+      result with the real outcome (executed / rejected / failed) and the agent carries on. Verified in the browser with a scripted model
+      and a local SMTP server (file filed, email received with the attachment).
+- [x] **Tool permissions screen** — Settings > AI agents: read-only and write/delete groups, group-wide setting, per-tool Always allow /
+      Needs approval / Blocked, for all agents or one agent (agent rules can be reset). `PUT /api/agents/policies` (bulk),
+      `DELETE /api/agents/policies/{action}?agent_key=`, `GET /api/agents/controls?agent_key=`.
 
 ## Sprint 5 — Analytics + Settings + Providers + Audit
 

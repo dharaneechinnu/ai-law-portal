@@ -5,7 +5,7 @@ import ssl
 from email.message import EmailMessage
 from email.utils import make_msgid
 
-from app.providers.base import EmailProvider
+from app.providers.base import Attachment, EmailProvider
 
 
 class SmtpEmailProvider(EmailProvider):
@@ -24,17 +24,20 @@ class SmtpEmailProvider(EmailProvider):
             smtp.login(self.username, self.password or "")
         return smtp
 
-    def _send(self, to: list[str], subject: str, body: str) -> str:
+    def _send(self, to: list[str], subject: str, body: str, attachments: list[Attachment] | None) -> str:
         msg = EmailMessage()
         msg["From"], msg["To"], msg["Subject"] = self.sender, ", ".join(to), subject
         msg["Message-ID"] = make_msgid()
         msg.set_content(body)
+        for filename, mime, data in attachments or []:
+            maintype, _, subtype = (mime if "/" in mime else "application/octet-stream").partition("/")
+            msg.add_attachment(data, maintype=maintype, subtype=subtype, filename=filename)
         with self._connect() as smtp:
             smtp.send_message(msg)
         return msg["Message-ID"]
 
-    async def send(self, to: list[str], subject: str, body: str) -> str:
-        return await asyncio.to_thread(self._send, to, subject, body)
+    async def send(self, to: list[str], subject: str, body: str, attachments: list[Attachment] | None = None) -> str:
+        return await asyncio.to_thread(self._send, to, subject, body, attachments)
 
     async def test_connection(self) -> bool:
         def _check() -> bool:

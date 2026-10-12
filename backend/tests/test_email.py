@@ -1,44 +1,7 @@
-"""Email over SMTP, against a local throwaway SMTP server (aiosmtpd)."""
-import socket
+"""Email over SMTP, against a local throwaway SMTP server (aiosmtpd, see the `smtp` fixture in conftest)."""
 import uuid
-from email import message_from_bytes, policy
-
-import pytest
-from aiosmtpd.controller import Controller
 
 from conftest import headers
-
-
-class Inbox:
-    def __init__(self):
-        self.messages = []
-
-    async def handle_DATA(self, server, session, envelope):
-        msg = message_from_bytes(envelope.content, policy=policy.default)
-        self.messages.append({"to": envelope.rcpt_tos, "subject": msg["subject"], "body": msg.get_content()})
-        return "250 OK"
-
-
-@pytest.fixture(scope="module")
-def smtp():
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        port = s.getsockname()[1]
-    inbox = Inbox()
-    ctl = Controller(inbox, hostname="127.0.0.1", port=port)
-    ctl.start()
-    yield port, inbox
-    ctl.stop()
-
-
-@pytest.fixture
-def email_on(client, admin, smtp):
-    port, inbox = smtp
-    r = client.put("/api/settings/email", headers=headers(admin), json={
-        "host": "127.0.0.1", "port": port, "security": "none", "username": None, "password": "s3cret", "sender": "portal@test.firm"})
-    assert r.status_code == 200
-    inbox.messages.clear()
-    return inbox
 
 
 def test_settings_never_return_the_password(client, admin, email_on):

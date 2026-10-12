@@ -197,3 +197,12 @@ def set_rule(db: Session, actor: User, action: str, decision: str, agent_key: st
     rule.decision, rule.created_by = decision, actor.id
     audit.record(db, action="POLICY_CHANGED", user_id=actor.id, resource_type="agent_policy", resource_id=action,
                  executed=True, result={"from": old, "to": decision, "agent": agent_key})
+
+
+def clear_rule(db: Session, actor: User, action: str, agent: Agent) -> None:
+    rule = db.scalar(select(AgentPolicy).where(AgentPolicy.action == action, AgentPolicy.is_override.is_(False),
+                                               AgentPolicy.agent_id == agent.id))
+    if rule:
+        audit.record(db, action="POLICY_CHANGED", user_id=actor.id, resource_type="agent_policy", resource_id=action,
+                     executed=True, result={"from": rule.decision, "to": "inherit", "agent": agent.key})
+        db.delete(rule)

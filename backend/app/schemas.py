@@ -723,6 +723,7 @@ class ToolInfoOut(BaseModel):
     is_external: bool
     is_destructive: bool
     decision: str
+    inherited: bool = True  # no rule for the chosen agent; the all-agents rule or default applies
 
 
 class OverrideOut(BaseModel):
@@ -769,6 +770,10 @@ class PolicyIn(BaseModel):
         return v
 
 
+class PolicyBulkIn(PolicyIn):
+    actions: list[str]
+
+
 class OverrideIn(BaseModel):
     action: str
     agent_key: str | None = None
@@ -785,9 +790,18 @@ class OverrideIn(BaseModel):
 
 # ---- Assistant (LangGraph agents) ----
 class ChatIn(BaseModel):
-    agent_key: str = "task"
+    agent_key: str = "assistant"
     message: str
     execution_id: uuid.UUID | None = None
+    upload_ids: list[uuid.UUID] = []  # files attached in the chat
+    matter_id: uuid.UUID | None = None  # the matter page the user has open
+
+    @field_validator("upload_ids")
+    @classmethod
+    def few_files(cls, v):
+        if len(v) > 5:
+            raise ValueError("Attach at most 5 files")
+        return v
 
     @field_validator("message")
     @classmethod
@@ -798,12 +812,17 @@ class ChatIn(BaseModel):
         return v
 
 
+class ResumeIn(BaseModel):
+    agent_key: str = "assistant"
+
+
 class StepOut(BaseModel):
     action: str
     label: str
     status: str
     reason: str = ""
     approval_id: uuid.UUID | None = None
+    summary: str | None = None  # what will happen, for the approval card
 
 
 class ChatOut(BaseModel):
@@ -811,6 +830,13 @@ class ChatOut(BaseModel):
     agent_key: str
     reply: str
     steps: list[StepOut]
+    status: str = "completed"  # completed / waiting_approval
+
+
+class UploadOut(BaseModel):
+    id: uuid.UUID
+    filename: str
+    size_bytes: int
 
 
 # ---- Audit ----

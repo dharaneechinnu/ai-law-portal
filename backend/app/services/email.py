@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.security import decrypt_secret, encrypt_secret
 from app.models import Firm, User
-from app.providers.base import EmailProvider
+from app.providers.base import Attachment, EmailProvider
 from app.providers.smtp_email import SmtpEmailProvider
 from app.schemas import EmailConfigIn, EmailConfigOut
 from app.services import audit
@@ -64,11 +64,14 @@ def is_configured(db: Session) -> bool:
 
 
 async def send(db: Session, to: list[str], subject: str, body: str, *, actor: User | None = None,
-               reason: str = "email") -> str:
-    """Send through the configured provider and audit it (recipients and subject only, never the body)."""
-    message_id = await get_provider(db).send(to, subject, body)
+               reason: str = "email", attachments: list[Attachment] | None = None) -> str:
+    """Send through the configured provider and audit it (recipients, subject and file names, never the body)."""
+    message_id = await get_provider(db).send(to, subject, body, attachments)
+    result = {"to": to, "subject": subject}
+    if attachments:
+        result["attachments"] = [a[0] for a in attachments]
     audit.record(db, action="EMAIL_SENT", user_id=actor.id if actor else None, resource_type=reason, executed=True,
-                 result={"to": to, "subject": subject})
+                 result=result)
     db.commit()
     return message_id
 

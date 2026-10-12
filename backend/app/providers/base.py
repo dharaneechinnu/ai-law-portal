@@ -68,6 +68,9 @@ class CalendarProvider(ABC):
     async def cancel_event(self, event_id: str) -> None: ...
 
 
+Attachment = tuple[str, str, bytes]  # (filename, mime type, content)
+
+
 class EmailProvider(ABC):
     @abstractmethod
-    async def send(self, to: list[str], subject: str, body: str) -> str: ...
+    async def send(self, to: list[str], subject: str, body: str, attachments: list[Attachment] | None = None) -> str: ...

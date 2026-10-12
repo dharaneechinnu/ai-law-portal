@@ -376,6 +376,8 @@ export interface ToolInfo {
   is_external: boolean;
   is_destructive: boolean;
   decision: PolicyDecision;
+  /** No rule for the chosen agent: the all-agents rule (or the tool's default) applies. */
+  inherited: boolean;
 }
 
 export interface OverrideInfo {
@@ -413,9 +415,11 @@ export interface ActionResult {
   result?: Record<string, unknown> | null;
 }
 
-export interface ChatStep { action: string; label: string; status: string; reason: string; approval_id?: string | null }
+export interface ChatStep { action: string; label: string; status: string; reason: string; approval_id?: string | null; summary?: string | null }
 
-export interface ChatReply { execution_id: string; agent_key: string; reply: string; steps: ChatStep[] }
+export interface ChatReply { execution_id: string; agent_key: string; reply: string; steps: ChatStep[]; status: "completed" | "waiting_approval" }
+
+export interface ChatUpload { id: string; filename: string; size_bytes: number }
 
 export interface AuditEntry {
   id: string;
