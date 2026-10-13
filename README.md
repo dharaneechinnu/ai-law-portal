@@ -21,8 +21,74 @@ A web portal for a law firm. Lawyers keep their clients, cases (called *matters*
 hearings in one place, and AI helps them read, track and act on that work. The AI never acts on its own say-so:
 the firm sets the rules, and anything that changes data or contacts someone waits for a person to approve it.
 
+## A quick tour of the app
+Screenshots are from the real app running with sample data (a criminal petition, a tax case and a civil suit).
+
+### Sign in
+Each person at the firm has their own login. Admins add people and choose their role (admin, partner, lawyer,
+associate, paralegal). Everyone only sees the cases they are allowed to see.
+
+![Sign-in page](docs/screenshots/login.png)
+
+### Dashboard: your day at a glance
+The first page after signing in. It shows what needs you today: hearings, overdue tasks, new court alerts and AI
+actions waiting for your approval. You can move, resize and hide every card.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Matters: every case in one list
+A *matter* is a case or piece of work for a client. The list shows the client, court, next hearing and priority.
+Filter by status or search by title, client or court.
+
+![Matters list](docs/screenshots/matters.png)
+
+### Matter workspace
+Open a matter to see everything about it on one screen: details, documents, the AI question box, timeline, team,
+tasks, hearings, court alerts and AI activity.
+
+| Overview | Documents | Timeline |
+|---|---|---|
+| ![Matter overview](docs/screenshots/matter-overview.png) | ![Matter documents](docs/screenshots/matter-documents.png) | ![Matter timeline](docs/screenshots/matter-timeline.png) |
+
+- **Documents:** drop in a PDF, Word or text file. The portal reads it and makes it searchable for the AI.
+- **Timeline:** everything that happens on the case is recorded automatically, with date and time.
+
+### Clients
+Contact details for each client and all of their matters.
+
+![Clients](docs/screenshots/clients.png)
+
+### People
+Everyone at the firm, who is free right now, and how much work each person has.
+
+![People](docs/screenshots/people.png)
+
+### Tasks
+Work items with an owner, due date and priority. Overdue work is shown in red. Tasks are archived, never deleted.
+
+![Tasks](docs/screenshots/tasks.png)
+
+### Calendar and hearings
+Court hearings and meetings for the week or month. Hearings link back to their matter.
+
+![Calendar](docs/screenshots/calendar.png)
+
+### Notifications and quick search
+Reminders arrive before hearings, meetings and deadlines, and when something needs your approval.
+Press **Ctrl/Cmd + K** anywhere to search or jump to any page.
+
+| Notifications | Quick search (Ctrl/Cmd + K) |
+|---|---|
+| ![Notifications](docs/screenshots/notifications.png) | ![Command palette](docs/screenshots/command-palette.png) |
+
+### Settings: choose your AI
+Admins pick the AI service the firm wants to use, from free and private models that run on your own computer to
+cloud services. Keys are stored encrypted on the server and never shown again.
+
+![AI provider settings](docs/screenshots/ai-providers.png)
+
 ## What the AI can do
-Screenshots below are from the real app running with sample data. A scripted stand-in model wrote the AI text,
+A scripted stand-in model wrote the AI text in these screenshots,
 because no AI provider is connected yet; with a real model the screens are the same and the answers come from it.
 
 ### 1. Ask questions about a case's documents
@@ -98,6 +164,25 @@ or deleted. Analytics show how often AI ran, waited for approval or was blocked,
 In **Settings > AI providers**, add a model that can call tools (for the assistant) and an embedding model (for document
 search). In **Settings > Legal data**, add the eCourts connection. In **Settings > Email**, add your mail server so
 the assistant can send email.
+
+## Product video
+A 1½-minute tour of the portal, explained in plain English by **Lexi**, an animated guide.
+
+[![Watch the LexAI Portal product tour](docs/video/poster.jpg)](docs/video/lexai-portal-tour.mp4)
+
+**[Watch the video (MP4, 1080p, 1:33, 21 MB)](docs/video/lexai-portal-tour.mp4)**
+
+What it covers: the dashboard and daily briefing, case workspaces, asking questions about documents, the Ask AI
+assistant filing a document and emailing the client (with an approval at each step), court judgment alerts and
+comparison, tasks and reminders, tool permissions, the audit log, and the AI's safety rules.
+
+How it was made, using only open-source tools:
+- **Voice:** [Kokoro-82M](https://github.com/hexgrad/kokoro) text-to-speech (Apache-2.0), run with `kokoro-onnx`.
+- **Music:** original background music generated in Python with numpy (no samples, no licence needed).
+- **Animation:** an HTML page rendered frame by frame in headless Chromium (Playwright), encoded with FFmpeg.
+  The presenter's mouth moves with the loudness of the narration.
+
+To change the script or rebuild the video, see [docs/video/README.md](docs/video/README.md).
 
 ## Prerequisites
 - Python 3.11+

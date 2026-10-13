@@ -1,0 +1,55 @@
+{
+  "scenes": [
+    {"id": "intro", "kind": "title", "chapter": "", "title": "LexAI Portal",
+     "beats": [
+       {"text": "Hi, I'm Lexi. This is LexAI Portal: your law firm's workspace, with an AI that asks before it acts."}
+     ]},
+    {"id": "dashboard", "chapter": "Every morning", "title": "Your day, at a glance",
+     "beats": [
+       {"text": "Each morning, the dashboard and your AI daily briefing show what needs you today.", "img": "dashboard", "focus": [80, 377, 1423, 567], "point": "AI daily briefing"}
+     ]},
+    {"id": "matters", "chapter": "Cases", "title": "A workspace for every case",
+     "beats": [
+       {"text": "Every case has its own workspace, with documents, a timeline, tasks and hearings.", "img": "matter-overview", "point": "Everything about a case, together"}
+     ]},
+    {"id": "docs", "chapter": "Ask your documents", "title": "Answers with sources",
+     "beats": [
+       {"text": "Ask a question in plain words. The AI answers only from your documents, and shows the source file.", "img": "matter-ask-ai", "focus": [100, 350, 1404, 672], "point": "Answers only from your files"},
+       {"text": "If the answer isn't there, it says so.", "img": "matter-ask-ai", "focus": [100, 500, 760, 672], "point": "No guessing"}
+     ]},
+    {"id": "assistant", "chapter": "Ask AI assistant", "title": "It does the work, you approve",
+     "beats": [
+       {"text": "Or tell the assistant: upload this file for this case, and email it to the client.", "img": "assistant-1-approval", "focus": [1017, 228, 1416, 805], "point": "Ask in plain words"},
+       {"text": "It stops, and asks before filing the document.", "img": "assistant-1-approval", "focus": [1035, 456, 1345, 682], "point": "Asks before every change"},
+       {"text": "And again, before sending the email. Nothing happens until you approve.", "img": "assistant-2-email", "focus": [1035, 446, 1345, 682], "point": "Email waits for you"},
+       {"text": "Waiting actions are also listed on the Approvals page.", "img": "approvals", "focus": [80, 352, 1424, 656], "point": "One place to approve"}
+     ]},
+    {"id": "legal", "chapter": "Legal intelligence", "title": "New judgments, matched to your cases",
+     "beats": [
+       {"text": "Legal Intelligence matches new eCourts judgments to your cases, and explains why.", "img": "legal-intelligence", "focus": [540, 378, 1424, 724], "point": "eCourts alerts, explained"},
+       {"text": "Compare shows what's the same, and what's different. It's a reading aid, never a prediction.", "img": "matter-legal-match", "focus": [120, 642, 1384, 924], "point": "My case vs this judgment"}
+     ]},
+    {"id": "work", "chapter": "Team work", "title": "Tasks, hearings and reminders",
+     "beats": [
+       {"text": "Tasks, calendars and reminders keep the whole team on schedule.", "img": "calendar", "focus": [80, 290, 1424, 552], "point": "Nothing slips"}
+     ]},
+    {"id": "control", "chapter": "Control", "title": "Your firm sets the rules",
+     "beats": [
+       {"text": "Admins decide, tool by tool: always allow, ask first, or blocked.", "img": "tool-permissions", "point": "Permission per tool"},
+       {"text": "And every action is saved in an audit log that can't be edited.", "img": "audit-log", "focus": [340, 252, 1424, 782], "point": "Tamper-proof audit log"}
+     ]},
+    {"id": "rules", "kind": "rules", "chapter": "", "title": "Four simple rules",
+     "beats": [
+       {"text": "Four simple rules."},
+       {"text": "Answers come from your documents.", "point": "Answers from your documents"},
+       {"text": "No legal advice.", "point": "No legal advice, no predictions"},
+       {"text": "It can't give itself permission.", "point": "Can't give itself permission"},
+       {"text": "And every change waits for a person.", "point": "Every change waits for a person"}
+     ]},
+    {"id": "outro", "kind": "title", "chapter": "", "title": "LexAI Portal",
+     "beats": [
+       {"text": "To go live, connect an AI model, eCourts and email in Settings."},
+       {"text": "Thanks for watching!"}
+     ]}
+  ]
+}

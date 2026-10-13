@@ -1,0 +1,8 @@
+# generated or downloaded when rebuilding the video (see README.md)
+models
+voice/
+assets/
+out/
+timeline.json
+timeline.js
+preview_*.png
