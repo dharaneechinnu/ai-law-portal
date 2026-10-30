@@ -8,7 +8,9 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Agent, AgentPolicy, AgentTool, ApprovalRequest, Task, User
+from app.models import (
+    Agent, AgentPolicy, AgentTool, ApprovalRequest, CalendarEvent, Hearing, MatterLegalMatch, Task, User,
+)
 from app.schemas import ActionResultOut, ApprovalOut
 from app.services import audit, firm_settings
 from app.services.agent_tools import AGENTS, TOOLS
@@ -34,13 +36,15 @@ def ensure_registry(db: Session) -> None:
 
 
 def _matter_id(db: Session, args: dict | None) -> uuid.UUID | None:
-    """The matter an action touches: given directly, or through the task it names (for the matter's audit view)."""
+    """The matter an action touches: given directly, or through the record it names (for the matter's audit view)."""
     try:
         if args and args.get("matter_id"):
             return uuid.UUID(str(args["matter_id"]))
-        if args and args.get("task_id"):
-            task = db.get(Task, uuid.UUID(str(args["task_id"])))
-            return task.matter_id if task else None
+        for key, model in (("task_id", Task), ("hearing_id", Hearing), ("event_id", CalendarEvent),
+                           ("match_id", MatterLegalMatch)):
+            if args and args.get(key):
+                row = db.get(model, uuid.UUID(str(args[key])))
+                return row.matter_id if row else None
     except ValueError:
         pass
     return None

@@ -31,30 +31,41 @@ MAX_STEPS = 8
 AGENT_SPECS: dict[str, dict] = {
     "assistant": {
         "tools": list(TOOLS),
-        "goal": "Help with anything in the portal: matters, documents, tasks, meetings and email. Work step by step. "
-                "To file an attached file, use its upload_id with the matter's id. To email a client, read the matter "
-                "first for their address, and attach files with document_ids or upload_ids when asked.",
+        "goal": "Help with anything in the portal: clients, matters, documents, tasks, meetings, hearings, legal alerts "
+                "and email. Work step by step and do what the user asks with the tools; do not just describe it. "
+                "Look things up first to get their ids (SEARCH_MATTERS, SEARCH_CLIENTS, FIND_PEOPLE, LIST_TASKS, "
+                "LIST_CALENDAR, LIST_HEARINGS, LIST_LEGAL_ALERTS), then act on them. When changing a record, send only "
+                "the fields that change. To file an attached file, use its upload_id with the matter's id. To email a "
+                "client, read the matter first for their address, and attach files with document_ids or upload_ids "
+                "when asked.",
     },
     "task": {
-        "tools": ["LIST_TASKS", "CREATE_TASK", "COMPLETE_TASK", "DELETE_TASK", "SEARCH_MATTERS", "FIND_PEOPLE"],
-        "goal": "Manage the user's tasks: list, create, complete or delete them.",
+        "tools": ["LIST_TASKS", "CREATE_TASK", "UPDATE_TASK", "COMPLETE_TASK", "DELETE_TASK", "SEARCH_MATTERS",
+                  "FIND_PEOPLE"],
+        "goal": "Manage the user's tasks: list, create, change (assignee, due date, priority), complete or delete them.",
     },
     "scheduling": {
-        "tools": ["FIND_PEOPLE", "CHECK_AVAILABILITY", "CREATE_EVENT", "SEARCH_MATTERS"],
-        "goal": "Schedule meetings. Always find the person, then check availability inside their working hours, "
-                "then propose or book the slot. If the first slot is busy, check the next free hour the same day.",
+        "tools": ["FIND_PEOPLE", "CHECK_AVAILABILITY", "LIST_CALENDAR", "CREATE_EVENT", "UPDATE_EVENT", "CANCEL_EVENT",
+                  "SEARCH_MATTERS", "LIST_HEARINGS", "CREATE_HEARING", "UPDATE_HEARING"],
+        "goal": "Schedule, move and cancel meetings and court hearings. For a meeting, find the person, then check "
+                "availability inside their working hours, then propose or book the slot. If the first slot is busy, "
+                "check the next free hour the same day. To move or cancel, find the meeting with LIST_CALENDAR first.",
     },
     "matter_intel": {
-        "tools": ["SEARCH_MATTERS", "ASK_MATTER", "LIST_TASKS"],
-        "goal": "Answer questions about the user's matters from their documents and tasks, with citations.",
+        "tools": ["SEARCH_MATTERS", "GET_MATTER", "ASK_MATTER", "LIST_DOCUMENTS", "LIST_TASKS", "LIST_HEARINGS",
+                  "GET_TIMELINE", "LIST_LEGAL_ALERTS"],
+        "goal": "Answer questions about the user's matters from their documents, tasks, hearings and timeline, "
+                "with citations.",
     },
     "legal_research": {
-        "tools": ["SEARCH_MATTERS", "ASK_MATTER"],
-        "goal": "Help with legal research on a matter using only its documents. Analysis, not legal advice.",
+        "tools": ["SEARCH_MATTERS", "GET_MATTER", "ASK_MATTER", "LIST_DOCUMENTS", "LIST_LEGAL_ALERTS",
+                  "REVIEW_LEGAL_ALERT"],
+        "goal": "Help with legal research on a matter using only its documents and the judgments flagged for it. "
+                "Analysis, not legal advice.",
     },
     "briefing": {
-        "tools": ["LIST_TASKS", "SEARCH_MATTERS"],
-        "goal": "Summarise what needs the user's attention today.",
+        "tools": ["GET_TODAY", "LIST_TASKS", "LIST_CALENDAR", "LIST_LEGAL_ALERTS", "SEARCH_MATTERS"],
+        "goal": "Summarise what needs the user's attention today: start with GET_TODAY.",
     },
 }
 

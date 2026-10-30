@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session
 from app.models import CalendarEvent, Hearing, Matter, User
 from app.providers.base import CalendarProvider
 from app.providers.local_calendar import LocalCalendarProvider
-from app.schemas import CalItemOut, EventIn
+from app.schemas import CalItemOut, EventIn, HearingIn, HearingOut
 from app.services.access import matter_or_404, visible_matter_ids
+from app.services.matters import add_timeline
 from app.services.notifications import notify
 
 HEARING_LENGTH = timedelta(hours=1)  # display length only; hearings store a start time
@@ -71,6 +72,65 @@ async def create_event(db: Session, user: User, body: EventIn) -> CalItemOut:
         notify(db, uuid.UUID(uid), "meeting", f"Invited: {body.title}", body=f"From {user.name}", link="/calendar",
                dedupe_key=f"event:{event_id}:invite:{uid}")
     return next(i for i in items_between(db, user, body.start, body.end) if str(i.id) == event_id)
+
+
+async def update_event(db: Session, user: User, event: CalendarEvent, data: dict) -> CalItemOut:
+    """Apply a partial update from the organiser: move, rename, re-invite or cancel."""
+    if data.get("status") == "cancelled":
+        await get_calendar_provider(db).cancel_event(str(event.id))
+    elif "status" in data:
+        event.status = data["status"]
+    if data.get("matter_id"):
+        matter_or_404(db, data["matter_id"], user)
+    if "attendee_ids" in data:
+        before = set(event.attendee_ids or [])
+        event.attendee_ids = [a for a in check_people(db, data["attendee_ids"] or []) if a != str(user.id)]
+        for uid in set(event.attendee_ids) - before:
+            notify(db, uuid.UUID(uid), "meeting", f"Invited: {event.title}", body=f"From {user.name}",
+                   link="/calendar", dedupe_key=f"event:{event.id}:invite:{uid}")
+    for field, col in (("title", "title"), ("start", "starts_at"), ("end", "ends_at"), ("location", "location"),
+                       ("matter_id", "matter_id")):
+        if field in data:
+            setattr(event, col, data[field])
+    check_times(event.starts_at, event.ends_at)
+    db.flush()
+    return next(i for i in items_between(db, user, event.starts_at, event.ends_at) if i.id == event.id)
+
+
+def hearing_out(db: Session, h: Hearing) -> HearingOut:
+    matter = db.get(Matter, h.matter_id)
+    return HearingOut.model_validate(h).model_copy(update={"matter_title": matter.title if matter else None})
+
+
+def hearing_or_404(db: Session, hearing_id: uuid.UUID, user: User) -> Hearing:
+    h = db.scalar(select(Hearing).where(Hearing.id == hearing_id, Hearing.matter_id.in_(visible_matter_ids(user))))
+    if not h:
+        raise HTTPException(404, "Hearing not found")
+    return h
+
+
+def create_hearing(db: Session, user: User, body: HearingIn) -> Hearing:
+    matter = matter_or_404(db, body.matter_id, user)
+    h = Hearing(**body.model_dump())
+    db.add(h)
+    db.flush()
+    add_timeline(db, matter.id, "hearing_scheduled", f"Hearing on {h.scheduled_at:%d %b %Y}", user.id,
+                 {"hearing_id": str(h.id)})
+    refresh_next_hearing(db, matter.id)
+    return h
+
+
+def update_hearing(db: Session, user: User, h: Hearing, data: dict) -> Hearing:
+    old_status, old_at = h.status, h.scheduled_at
+    for k, v in data.items():
+        setattr(h, k, v)
+    if h.status != old_status:
+        add_timeline(db, h.matter_id, f"hearing_{h.status}", f"Hearing {h.status}", user.id, {"hearing_id": str(h.id)})
+    elif h.scheduled_at != old_at:
+        add_timeline(db, h.matter_id, "hearing_moved", f"Hearing moved to {h.scheduled_at:%d %b %Y}", user.id,
+                     {"hearing_id": str(h.id)})
+    refresh_next_hearing(db, h.matter_id)
+    return h
 
 
 def items_between(db: Session, user: User, start: datetime, end: datetime) -> list[CalItemOut]:

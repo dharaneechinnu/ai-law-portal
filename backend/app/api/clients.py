@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,7 @@ from app.api.deps import get_current_user
 from app.core.db import get_db
 from app.models import Client, User
 from app.schemas import ClientIn, ClientOut
+from app.services.matters import create_client as create_client_svc, update_client as update_client_svc
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 
@@ -19,8 +20,7 @@ def list_clients(db: Session = Depends(get_db), user: User = Depends(get_current
 
 @router.post("", response_model=ClientOut, status_code=201)
 def create_client(body: ClientIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    client = Client(firm_id=user.firm_id, **body.model_dump())
-    db.add(client)
+    client = create_client_svc(db, user, body)
     db.commit()
     return client
 
@@ -28,10 +28,6 @@ def create_client(body: ClientIn, db: Session = Depends(get_db), user: User = De
 @router.put("/{client_id}", response_model=ClientOut)
 def update_client(client_id: uuid.UUID, body: ClientIn, db: Session = Depends(get_db),
                   user: User = Depends(get_current_user)):
-    client = db.get(Client, client_id)
-    if not client:
-        raise HTTPException(404, "Client not found")
-    for k, v in body.model_dump().items():
-        setattr(client, k, v)
+    client = update_client_svc(db, client_id, body.model_dump())
     db.commit()
     return client

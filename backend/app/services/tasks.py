@@ -108,6 +108,25 @@ def change_status(db: Session, user: User, task: Task, new_status: str) -> None:
         add_timeline(db, task.matter_id, event, f"{label}: {task.title}", user.id, {"task_id": str(task.id)})
 
 
+def update_task(db: Session, user: User, task: Task, data: dict) -> Task:
+    """Apply a partial update (fields set by the caller only). Shared by the tasks API and the Task agent."""
+    data = dict(data)
+    if "assignee_id" in data:
+        check_assignee(db, data["assignee_id"])
+    if "depends_on" in data:
+        set_dependencies(db, task, data.pop("depends_on") or [], user)
+        db.flush()
+    new_status = data.pop("status", None)
+    old_assignee = task.assignee_id
+    for k, v in data.items():
+        setattr(task, k, v)
+    if task.assignee_id != old_assignee:
+        notify_assignee(db, task, user)
+    if new_status:
+        change_status(db, user, task, new_status)
+    return task
+
+
 def to_out(db: Session, tasks: list[Task]) -> list[TaskOut]:
     if not tasks:
         return []

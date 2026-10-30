@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,8 +10,7 @@ from app.core.db import get_db
 from app.models import Task, User
 from app.schemas import TaskIn, TaskOut, TaskUpdate
 from app.services.tasks import (
-    change_status, check_assignee, create_task as create_task_svc, get_task_or_404, notify_assignee, set_dependencies,
-    to_out, visible_tasks,
+    create_task as create_task_svc, get_task_or_404, to_out, update_task as update_task_svc, visible_tasks,
 )
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -43,20 +42,6 @@ def create_task(body: TaskIn, db: Session = Depends(get_db), user: User = Depend
 @router.patch("/{task_id}", response_model=TaskOut)
 def update_task(task_id: uuid.UUID, body: TaskUpdate, db: Session = Depends(get_db),
                 user: User = Depends(get_current_user)):
-    task = get_task_or_404(db, task_id, user)
-    data = body.model_dump(exclude_unset=True)
-    if "assignee_id" in data:
-        check_assignee(db, data["assignee_id"])
-    if "depends_on" in data:
-        set_dependencies(db, task, data.pop("depends_on") or [], user)
-        db.flush()
-    new_status = data.pop("status", None)
-    old_assignee = task.assignee_id
-    for k, v in data.items():
-        setattr(task, k, v)
-    if task.assignee_id != old_assignee:
-        notify_assignee(db, task, user)
-    if new_status:
-        change_status(db, user, task, new_status)
+    task = update_task_svc(db, user, get_task_or_404(db, task_id, user), body.model_dump(exclude_unset=True))
     db.commit()
     return to_out(db, [task])[0]

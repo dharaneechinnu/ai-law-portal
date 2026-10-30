@@ -89,6 +89,8 @@ frontend/src/
   Settings > AI agents (kill switch, modes, tool permissions per agent, overrides), floating Ask AI panel. The general `assistant`
   agent uses every tool, takes chat file attachments and the open matter as context, pauses on approval (Approve/Reject cards in
   the chat) and resumes from the real outcome. Default: every agent "Ask first"; DELETE_TASK off; read-only tools allowed.
+  30 tools cover tasks, calendar/hearings, clients, matters/members, documents, legal alerts, today's agenda and email; add a
+  new chat-able action as service function -> Tool in `agent_tools.py` -> agent's tool list in `agents.py`.
   Agents tested with a scripted fake model only.
 - Sprint 5 built: audit log screen (append-only by DB trigger), analytics, model routing per job, firm notification settings,
   SMTP email (Settings > Email, emailed invites), calendar month view.
@@ -96,7 +98,7 @@ frontend/src/
   every signed-in page restyled full width. Dashboard cards are always movable, resizable (w 3-12 cols, h 2-8 rows) and
   hideable; layout saved in `users.dashboard_layout`. `dark:` follows the app theme class (`@custom-variant` in `index.css`).
 - Not yet: Google/Outlook calendar, storage settings, data retention, API keys, scheduled eCourts sync, emailed reminders,
-  frontend tests. Backend tests: `pytest` in backend/ (36 tests, own `ai_law_test` DB).
+  frontend tests. Backend tests: `pytest` in backend/ (43 tests, own `ai_law_test` DB).
 - Blocked on user: choice of a tool-calling LLM + embedding model (nothing configured in Settings > AI providers yet);
   eCourts base URL, endpoint paths and a sample response.
 

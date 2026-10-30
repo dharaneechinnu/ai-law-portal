@@ -107,7 +107,9 @@ export function AssistantPanel() {
     setExecution(r.execution_id);
     setWaiting(r.status === "waiting_approval");
     setMsgs((m) => [...m, { role: "agent", text: r.reply || "Done.", steps: r.steps }]);
-    for (const k of ["tasks", "calendar", "dashboard", "approvals", "notifications", "documents", "timeline"]) qc.invalidateQueries({ queryKey: [k] });
+    // Anything an agent tool can change, so open pages show the result without a reload.
+    for (const k of ["tasks", "calendar", "hearings", "dashboard", "briefing", "approvals", "notifications", "documents", "timeline",
+      "matters", "matter", "members", "clients", "legal"]) qc.invalidateQueries({ queryKey: [k] });
   };
   const send = useMutation({
     mutationFn: (message: string) => api<ChatReply>("/assistant/chat", {

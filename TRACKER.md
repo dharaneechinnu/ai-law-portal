@@ -126,6 +126,18 @@ Status: `[x]` done · `[~]` scaffolded (structure exists, logic pending) · `[ ]
 - [x] **Tool permissions screen** — Settings > AI agents: read-only and write/delete groups, group-wide setting, per-tool Always allow /
       Needs approval / Blocked, for all agents or one agent (agent rules can be reset). `PUT /api/agents/policies` (bulk),
       `DELETE /api/agents/policies/{action}?agent_key=`, `GET /api/agents/controls?agent_key=`.
+- [x] **Every chat request wired to a tool** — Audit of what a user can ask in chat against what the portal can do; 17 tools
+      added so the agent does the action instead of saying it can't (30 tools in all). Read-only: GET_TIMELINE, SEARCH_CLIENTS,
+      LIST_CALENDAR, LIST_HEARINGS, LIST_LEGAL_ALERTS, GET_TODAY. Changes (Ask first by default): UPDATE_TASK (due date, assignee,
+      priority, reopen; cannot complete or archive, so DELETE_TASK's rule can't be bypassed), UPDATE_EVENT, CANCEL_EVENT (kept as
+      cancelled), CREATE_HEARING, UPDATE_HEARING, CREATE_CLIENT, UPDATE_CLIENT, CREATE_MATTER, UPDATE_MATTER (e.g. close it),
+      ADD_MATTER_MEMBER, REVIEW_LEGAL_ALERT. SEARCH_MATTERS can include closed matters. Update tools ignore null fields so a model
+      cannot clear data by accident; approval cards list the exact changes. Each agent got the tools for its job (Briefing reads
+      today's agenda, Scheduling moves/cancels meetings and hearings, Matter Intelligence reads hearings/timeline/alerts).
+      Update logic for tasks, events, hearings, matters, members, clients and legal alerts moved from routers into services so the
+      REST API and agents share one code path. Audit links hearing/event/alert actions to their matter. Chat panel refreshes
+      matters, clients, hearings and alerts after a turn. `tests/test_agent_tools.py` (7 tests). Not exposed to agents on purpose:
+      user admin, firm/AI/email/eCourts settings, policies (privileged); removing matter members; judgment comparison and eCourts sync.
 
 ## Sprint 5 — Analytics + Settings + Providers + Audit
 
